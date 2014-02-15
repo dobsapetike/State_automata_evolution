@@ -1,0 +1,15 @@
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\bin\Debug\BenchmarkDepot.exe
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\bin\Debug\BenchmarkDepot.pdb
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\App.g.cs
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot_MarkupCompile.cache
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot_MarkupCompile.lref
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot.g.resources
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot.Properties.Resources.resources
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot.exe
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\BenchmarkDepot.pdb
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\Classes\GUI\MainWindow.g.cs
+C:\Users\petike\documents\visual studio 2010\Projects\BenchmarkDepot\BenchmarkDepot\obj\x86\Debug\Classes\GUI\MainWindow.baml
