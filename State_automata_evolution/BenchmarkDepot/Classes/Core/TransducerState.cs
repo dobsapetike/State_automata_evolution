@@ -40,7 +40,7 @@ namespace BenchmarkDepot.Classes.Core
         {
             var other = (TransducerState)this.MemberwiseClone();
             other._transitions = new Dictionary<string, Tuple<TransducerTransition, int>>();
-            foreach (KeyValuePair<string, Tuple<TransducerTransition, int>> transition in _transitions)
+            foreach (var transition in _transitions)
             {
                 other._transitions.Add(transition.Key, new Tuple<TransducerTransition, int>
                     ((TransducerTransition)transition.Value.Item1.Clone(), transition.Value.Item2));
@@ -82,6 +82,13 @@ namespace BenchmarkDepot.Classes.Core
                 ? String.Empty : transition.Key;
         }
 
+        public List<TransducerTransition> GetListOfTransitions()
+        {
+            var result = new List<TransducerTransition>();
+            result = _transitions.Select(item => (TransducerTransition)item.Value.Item1.Clone()).ToList();
+            return result;
+        }
+
         /// <summary>
         /// This method will be called when the automaton switches state
         /// </summary>
@@ -103,7 +110,7 @@ namespace BenchmarkDepot.Classes.Core
             {
                 result += String.Format("{0,-15} -> {1,-15} -> ", ID, state.Key.SetStringToLenght(15));
                 result += String.Format("{0,-15} // ", state.Value.Item2);
-                result += String.Format("{0,-15}\n", state.Value.Item1.Translation.SetStringToLenght(15));
+                result += String.Format("{0,-15}({1})\n", state.Value.Item1.Translation.SetStringToLenght(15), state.Value.Item1.InnovationNumber);
             }
             return result;
         }

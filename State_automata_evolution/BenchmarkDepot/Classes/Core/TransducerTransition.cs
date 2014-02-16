@@ -25,12 +25,42 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
+        /// The event activationg the action this transition
+        /// </summary>
+        private string _transitionEvent;
+        public string TransitionEvent
+        {
+            get { return _transitionEvent; }
+            set { _transitionEvent = value; }
+        }
+
+        /// <summary>
         /// Innovation number used by NEAT evolution for detecting historical origin  
         /// </summary>
         private int _innovationNumber;
         public int InnovationNumber
         {
             get { return _innovationNumber; }
+        }
+
+        /// <summary>
+        /// Id of transducer state from where the transition start
+        /// </summary>
+        private int _stateFrom;
+        public int StateFrom
+        {
+            get { return _stateFrom; }
+            set { _stateFrom = value; }
+        }
+
+        /// <summary>
+        /// Id of transducer state where the transition leads to
+        /// </summary>
+        private int _stateTo;
+        public int StateTo
+        {
+            get { return _stateTo; }
+            set { _stateTo = value; }
         }
 
         #region Constructor

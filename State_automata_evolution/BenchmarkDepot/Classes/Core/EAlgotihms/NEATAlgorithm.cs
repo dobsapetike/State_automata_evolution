@@ -177,13 +177,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 t.AddState(new TransducerState(2));
                 population.Add(t);
             }
+            _stateIndex = 2;
         }
 
         /// <summary>
         /// Performs a mutation on a transducer
         /// </summary>
         /// <returns>the mutated transducer</returns>
-        protected virtual Transducer MutateTransducer(Transducer transducer)
+        public virtual Transducer MutateTransducer(Transducer transducer)
         {
             // Creates a random transition with given innovation number
             Func<int, TransducerTransition> CreateRandomTransition = (innovation) =>
@@ -257,14 +258,51 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Performs a crossover of the transducers
+        /// Performs a crossover of two transducers
         /// </summary>
         /// <param name="a">first parent</param>
         /// <param name="b">second parent</param>
         /// <returns>the resulting offspring</returns>
-        protected virtual Transducer CrossTransducers(Transducer a, Transducer b)
+        public virtual Transducer CrossTransducers(Transducer a, Transducer b)
         {
-            return null;
+            Action<Transducer, SortedDictionary<int, List<TransducerTransition>>> SaveTransitions = (T, D) =>
+            {
+                foreach (var state in T.States)
+                {
+                    var trans = state.GetListOfTransitions();
+                    foreach (var tran in trans)
+                    {
+                        if (!D.ContainsKey(tran.InnovationNumber))
+                        {
+                            D[tran.InnovationNumber] = new List<TransducerTransition>();
+                        }
+                        D[tran.InnovationNumber].Add(tran);
+                    }
+                }
+            };
+
+            var transitions = new SortedDictionary<int, List<TransducerTransition>>();
+            
+            SaveTransitions(a, transitions);
+            SaveTransitions(b, transitions);
+
+            var offspring = new Transducer();
+
+            foreach (var tran in transitions)
+            {
+                if (tran.Value.Count == 0) continue;
+
+                var selected = tran.Value[0];
+                if (tran.Value.Count > 0)
+                {
+                    selected = tran.Value[random.Next(tran.Value.Count)];
+                }
+                var from = new TransducerState(selected.StateFrom);
+                var to = new TransducerState(selected.StateTo);
+                offspring.AddTransition(from, to, selected.TransitionEvent, (TransducerTransition)selected.Clone());
+            }
+
+            return offspring;
         }
 
         #endregion
@@ -282,3 +320,4 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
     }
 
 }
+

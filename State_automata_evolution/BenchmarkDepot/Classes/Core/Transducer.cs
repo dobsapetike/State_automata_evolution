@@ -72,11 +72,16 @@ namespace BenchmarkDepot.Classes.Core
         /// <summary>
         /// Method for adding new states
         /// </summary>
-        public void AddState(TransducerState state)
+        /// <returns>If a state with the same Id already exists returns it, otherwise returns
+        /// the new state</returns>
+        public TransducerState AddState(TransducerState state)
         {
-            if (_states.Contains(state)) return;
+            var exists = _states.Where(s => s.ID == state.ID).FirstOrDefault();
+            if (exists != null) return exists;
+
             _states.Add(state);
             if (_states.Count == 1) _currentState = state;
+            return state;
         }
 
         /// <summary>
@@ -98,8 +103,13 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         public void AddTransition(TransducerState from, TransducerState to, string action, TransducerTransition transition)
         {
-            AddState(to);
-            AddState(from);
+            // Id control with 'AddState' - so two states with same Id but different reference won't be added
+            to = AddState(to);
+            from = AddState(from);
+
+            transition.StateFrom = from.ID;
+            transition.StateTo = to.ID;
+            transition.TransitionEvent = action;
             from.AddTransition(action, transition, to.ID);
         }
 
