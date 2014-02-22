@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using BenchmarkDepot.Classes.Core.Interfaces;
+using System.Linq;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
+using BenchmarkDepot.Classes.Core.Interfaces;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms
 {
@@ -16,14 +16,36 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #region Private/protected fields
 
+        #region Counters
+
+        /// <summary>
+        /// Number of current generation
+        /// </summary>
         protected int _generation = 0;
+
+        /// <summary>
+        /// Counter for state id
+        /// </summary>
         protected int _stateIndex = 0;
+
+        /// <summary>
+        /// Counter for species id
+        /// </summary>
+        protected int _speciesIndex = 0;
+
+        /// <summary>
+        /// Counter for innovation id
+        /// </summary>
         protected int _globalInnovationNumber = 0;
 
-        private Random random = new Random();
+        #endregion
+
+        #region Parameters
 
         protected NEATParameters _neatParameters = new NEATParameters();
         protected GeneralEAParameters _generalParameters = new GeneralEAParameters();
+
+        #endregion
 
         /// <summary>
         /// List of all innovations that occurred during the current generation
@@ -31,9 +53,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         protected List<Innovation> _innovations = new List<Innovation>();
 
         /// <summary>
-        /// List of all transducers in the population
+        /// List of all species in the population
         /// </summary>
-        protected List<Transducer> population = new List<Transducer>();
+        protected List<Species> _population = new List<Species>();
+
+        private Random random = new Random();
 
         #endregion
 
@@ -107,7 +131,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         #region Private/protected methods
 
         /// <summary>
-        /// Given the id of two states, detects wheter a connection has added between them or not
+        /// Given the id of two states, detects whether a connection has added between them or not
         /// </summary>
         /// <returns>if the innovation exists it's number is returned, otherwise a global counter is 
         /// incremented and returned</returns>
@@ -125,9 +149,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Given the id of two states, detects wheter a node has been added between them or not
+        /// Given the id of two states, detects whether a node has been added between them or not
         /// </summary>
-        /// <returns>a tuple of integers is returned in this order: innovation number  of the connection 
+        /// <returns>a tuple of integers is returned in this order: innovation number of the connection 
         /// between the first and the new one, innovation number between the new and the second and the id of the new state</returns>
         private Tuple<int, int, int> DetectInnovationNumberForNodeMutation(int firstId, int secondId)
         {
@@ -165,17 +189,34 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
+        /// Inserts a new transducer into a fitting species
+        /// If no suitable specie exists a new is created   
+        /// </summary>
+        protected void InsertNewTransducer(Transducer t)
+        {
+            foreach (var species in _population)
+            {
+                if (species.InsertNew(t))
+                {
+                    return;
+                }
+            }
+            var newSpecies = new Species(_speciesIndex++, t, _neatParameters);
+            _population.Add(newSpecies);
+        }
+
+        /// <summary>
         /// Initializes the population
         /// </summary>
         protected virtual void Initialization()
         {
-            // Starting out minimally - only two states without any connections
+            // Starting out minimally - ???? only two states without any connections ????
             for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
             {
                 var t = new Transducer();
                 t.AddState(new TransducerState(1));
                 t.AddState(new TransducerState(2));
-                population.Add(t);
+                InsertNewTransducer(t);
             }
             _stateIndex = 2;
         }
@@ -184,7 +225,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// Performs a mutation on a transducer
         /// </summary>
         /// <returns>the mutated transducer</returns>
-        public virtual Transducer MutateTransducer(Transducer transducer)
+        protected virtual Transducer MutateTransducer(Transducer transducer)                  
         {
             // Creates a random transition with given innovation number
             Func<int, TransducerTransition> CreateRandomTransition = (innovation) =>
@@ -263,7 +304,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <param name="a">first parent</param>
         /// <param name="b">second parent</param>
         /// <returns>the resulting offspring</returns>
-        public virtual Transducer CrossTransducers(Transducer a, Transducer b)
+        protected virtual Transducer CrossTransducers(Transducer a, Transducer b)        
         {
             Action<Transducer, SortedDictionary<int, List<TransducerTransition>>> SaveTransitions = (T, D) =>
             {
@@ -292,11 +333,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             {
                 if (tran.Value.Count == 0) continue;
 
-                var selected = tran.Value[0];
-                if (tran.Value.Count > 0)
-                {
-                    selected = tran.Value[random.Next(tran.Value.Count)];
-                }
+                var selected = tran.Value[random.Next(tran.Value.Count)];
                 var from = new TransducerState(selected.StateFrom);
                 var to = new TransducerState(selected.StateTo);
                 offspring.AddTransition(from, to, selected.TransitionEvent, (TransducerTransition)selected.Clone());
@@ -311,8 +348,21 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         public Transducer Evolve()
         {
+            // TODO
             // create a new thread for the evolutionary cycle so the gui stays responsive
-            throw new NotImplementedException();
+            Initialization();
+
+            for (;;)
+            {
+                if (++_generation == _generalParameters.GenerationThreshold)
+                {
+                    // finalizations
+                    return null;
+                }
+                // perform evaluation, selection, crossover, mutation
+                // replace population
+                return null;
+            }
         }
 
         #endregion

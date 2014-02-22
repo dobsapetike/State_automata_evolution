@@ -84,27 +84,6 @@ namespace BenchmarkDepot.Classes.ViewModel
                 new Exp("experiment", "experiment description"),
                 new Exp("haha", "hihi")
             };
-
-            Exp exper = new Exp("test","test");
-            exper.TransitionActions = new List<Action> { null };
-            exper.TransitionEvents = new List<string> { "enemy close", "enemy far", "danger" };
-            exper.TransitionTranslations = new List<string> { "peti", "dobsa", "a", "b", "c" };
-
-            //TransducerState a = new TransducerState(1);
-            //var b = new TransducerState(2);
-            //Transducer t = new Transducer();
-            //t.AddState(a); t.AddState(b);
-            //TransducerTransition tt = new TransducerTransition(null, "peti", 1);
-            ////t.AddTransition(a, b, "danger", tt);
-
-            //NEATAlgorithm neat = new NEATAlgorithm();
-            //neat.Experiment = exper;
-
-            //var g = neat.MutateTransducer(t);
-            //var h = neat.MutateTransducer(g);
-            //for (int i = 0; i < 10; ++i)
-            //    h = neat.MutateTransducer(h);
-            //System.Windows.MessageBox.Show("g:\n" + g.ToString() + "\nh:\n" + h.ToString());
         }
 
         #endregion

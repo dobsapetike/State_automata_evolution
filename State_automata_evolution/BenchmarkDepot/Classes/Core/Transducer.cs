@@ -34,7 +34,7 @@ namespace BenchmarkDepot.Classes.Core
         public string Translation { get; private set; }
 
         /// <summary>
-        /// A read-only getter for the state collection
+        /// A read-only getter for the collection of states
         /// </summary>
         public ReadOnlyCollection<TransducerState> States
         {
@@ -103,7 +103,7 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         public void AddTransition(TransducerState from, TransducerState to, string action, TransducerTransition transition)
         {
-            // Id control with 'AddState' - so two states with same Id but different reference won't be added
+            // id control with 'AddState' - so two states with same Id but different reference won't be added
             to = AddState(to);
             from = AddState(from);
 
@@ -113,6 +113,9 @@ namespace BenchmarkDepot.Classes.Core
             from.AddTransition(action, transition, to.ID);
         }
 
+        /// <summary>
+        /// String representation of the transducer for debugging puposes
+        /// </summary>
         public override string ToString()
         {
             string result = "";

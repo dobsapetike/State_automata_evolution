@@ -25,7 +25,7 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
-        /// The event activationg the action this transition
+        /// The event activating this transition
         /// </summary>
         private string _transitionEvent;
         public string TransitionEvent
