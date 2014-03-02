@@ -67,6 +67,7 @@
     <Compile Include="Classes\Core\EAlgotihms\Evol.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Innovation.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithm.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\EvaluationInfo.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\GeneralEAParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\NEATParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Species.cs" />

@@ -35,6 +35,26 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
+        /// Gets the name of the method of the transition action
+        /// </summary>
+        public string ActionName 
+        { 
+            get { return _transitionTranslation == null ? "null" : _transitionAction.Method.Name; } 
+        }
+
+        /// <summary>
+        /// Sets the action executed by this transition
+        /// </summary>
+        public Action TransitionAction
+        {
+            set
+            {
+                if (value == null || _transitionAction.Equals(value)) return;
+                _transitionAction = value;
+            }
+        }
+
+        /// <summary>
         /// Innovation number used by NEAT evolution for detecting historical origin  
         /// </summary>
         private int _innovationNumber;

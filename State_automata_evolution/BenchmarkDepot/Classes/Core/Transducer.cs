@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using BenchmarkDepot.Classes.Core.EAlgotihms;
 
 namespace BenchmarkDepot.Classes.Core
 {
@@ -9,7 +10,7 @@ namespace BenchmarkDepot.Classes.Core
     /// <summary>
     /// Class reprezentation of a finite state, deterministic transducer
     /// </summary>
-    public class Transducer : ICloneable
+    public class Transducer : ICloneable, IComparable
     {
 
         #region Private fields
@@ -41,6 +42,15 @@ namespace BenchmarkDepot.Classes.Core
             get { return _states.AsReadOnly(); }
         }
 
+        /// <summary>
+        /// Auto-property for the evaluation info
+        /// </summary>
+        public EvaluationInfo EvaluationInfo
+        {
+            get;
+            private set;
+        }
+
         #endregion
 
         #region Constructor
@@ -48,6 +58,7 @@ namespace BenchmarkDepot.Classes.Core
         public Transducer()
         {
             _states = new List<TransducerState>();
+            EvaluationInfo = new EvaluationInfo();
         }
 
         #endregion 
@@ -62,7 +73,26 @@ namespace BenchmarkDepot.Classes.Core
             {
                 other._currentState = other._states.Where(state => state.ID == _currentState.ID).First();
             }
+            other.EvaluationInfo = new EvaluationInfo();
             return other;
+        }
+
+        #endregion
+
+        #region Comparer
+
+        /// <summary>
+        /// Comparison for sorting by fitness value
+        /// In case of fitness equality compares by age
+        /// </summary>
+        public int CompareTo(object obj)
+        {
+            var other = (Transducer) obj;
+            if (other.EvaluationInfo.Fitness != EvaluationInfo.Fitness)
+            {
+                return this.EvaluationInfo.Fitness.CompareTo(other.EvaluationInfo.Fitness);
+            }
+            return other.EvaluationInfo.Age.CompareTo(this.EvaluationInfo.Age);
         }
 
         #endregion
@@ -114,7 +144,7 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
-        /// String representation of the transducer for debugging puposes
+        /// String representation of the transducer for debugging purposes
         /// </summary>
         public override string ToString()
         {

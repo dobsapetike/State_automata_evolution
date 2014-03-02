@@ -19,6 +19,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const double DefaultMutationProportion = 0.25;
         const double DefaultReplacementProportion = 0.85;
 
+        const double DefaultCrossoverProbability = 0.5;
+        const double DefaultStateDeletionMutationProbability = 0.25;
+        const double DefaultTransitionDeletionMutationProbability = 0.25;
+        const double DefaultTransitionActionMutationProbability = 0.25;
+        const double DefaultTransitionTriggerMutationProbability = 0.35;
+
         #endregion
 
         #region Private fields
@@ -30,6 +36,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _selectionProportion;
         private double _mutationProportion;
         private double _replacementProportion;
+
+        private double _crossoverProbability;
+        private double _stateDeletionMutationProbability;
+        private double _transitionDeletionMutationProbability;
+        private double _transitionActionMutationProbability;
+        private double _transitionTriggerMutationProbability;
 
         #endregion
 
@@ -94,11 +106,58 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             set { _replacementProportion = value; }
         }
 
+        /// <summary>
+        /// Gets and sets the probability of crossover between two individuals
+        /// </summary>
+        public double CrossoverProbability
+        {
+            get { return _crossoverProbability; }
+            set { _crossoverProbability = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random state is deleted
+        /// </summary>
+        public double StateDeletionMutationProbability
+        {
+            get { return _stateDeletionMutationProbability; }
+            set { _stateDeletionMutationProbability = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random transition is deleted
+        /// </summary>
+        public double TransitionDeletionMutationProbability
+        {
+            get { return _transitionDeletionMutationProbability; }
+            set { _transitionDeletionMutationProbability = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random transition action is modified
+        /// </summary>
+        public double TransitionActionMutationProbability
+        {
+            get { return _transitionActionMutationProbability; }
+            set { _transitionActionMutationProbability = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random transition trigger is modified
+        /// </summary>
+        public double TransitionTriggerMutationProbability
+        {
+            get { return _transitionTriggerMutationProbability; }
+            set { _transitionTriggerMutationProbability = value; }
+        }
         
         #endregion
 
         #region Constuctor
 
+        /// <summary>
+        /// Constructor sets the dafult value for all parameters
+        /// </summary>
         public GeneralEAParameters()
         {
             InitialPopulationSize = DefaultInitialPopulationSize;
@@ -108,6 +167,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             SelectionProportion = DefaultSelectionProportion;
             MutationProportion = DefaultMutationProportion;
             ReplacementProportion = DefaultReplacementProportion;
+
+            CrossoverProbability = DefaultCrossoverProbability;
+            StateDeletionMutationProbability = DefaultStateDeletionMutationProbability;
+            TransitionDeletionMutationProbability = DefaultTransitionDeletionMutationProbability;
+            TransitionActionMutationProbability = DefaultTransitionActionMutationProbability;
+            TransitionTriggerMutationProbability = DefaultTransitionTriggerMutationProbability;
         }
 
         #endregion

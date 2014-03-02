@@ -80,16 +80,24 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private bool IsCompatible(Transducer t)
         {
             
-            // Returns a sorted collection of all innovations in a given transducer
-            Func<Transducer, SortedSet<int>> GetInnovations = (T) =>
+            // Returns a sorted collection of all innovations in a given transducer along with the 
+            // transition actions and triggers
+            Func<Transducer, SortedDictionary<int, Tuple<HashSet<string>,HashSet<string>>>> GetInnovations = (T) =>
             {
-                var result = new SortedSet<int>();
+                var result = new SortedDictionary<int, Tuple<HashSet<string>,HashSet<string>>>();
                 foreach (var state in T.States)
                 {
                     var trans = state.GetListOfTransitions();
                     foreach (var tran in trans)
                     {
-                        result.Add(tran.InnovationNumber);
+                        var inNumb = tran.InnovationNumber;
+                        if (!result.ContainsKey(inNumb))
+                        {
+                            result.Add(inNumb, new Tuple<HashSet<string>,HashSet<string>>
+                                (new HashSet<string>(),new HashSet<string>()));
+                        }
+                        result[inNumb].Item1.Add(tran.TransitionEvent);
+                        result[inNumb].Item2.Add(tran.ActionName);
                     }
                 }
                 return result;
@@ -101,18 +109,26 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             if (innovationsRep.Count == 0 || innovationsNew.Count == 0) return false;
 
             int N = Math.Max(innovationsRep.Count, innovationsNew.Count);
-            int maxInnovation = Math.Max(innovationsRep.Last(), innovationsNew.Last());
+            int maxInnovation = Math.Max(innovationsRep.Last().Key, innovationsNew.Last().Key);
 
+            double weightDifference = 0.0;
             int excessCount = 0, disjointCount = 0;
             for (int i = 0; i < maxInnovation; ++i)
             {
-                var isInRep = innovationsRep.Contains(i);
-                var isInNew = innovationsNew.Contains(i);
+                var isInRep = innovationsRep.ContainsKey(i);
+                var isInNew = innovationsNew.ContainsKey(i);
 
                 if (!(isInRep || isInNew)) continue;
                 if (isInRep && isInNew)
                 {
-                    // TODO weight difference - but we don't have weights!
+                    if (innovationsRep[i].Item1.Intersect(innovationsNew[i].Item1).Count() > 0)
+                    {
+                        weightDifference += _neatParams.MatchingWeightDifferenceValue / 2;
+                    }
+                    if (innovationsRep[i].Item2.Intersect(innovationsNew[i].Item2).Count() > 0)
+                    {
+                        weightDifference += _neatParams.MatchingWeightDifferenceValue / 2;
+                    }
                 }
 
                 if (isInRep)  excessCount++;
@@ -122,7 +138,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             var compDistance =
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
-                0;  //_neatParams.CoefMatchingWeightDifferenceFactor * weightDifference
+                _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
             return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
@@ -138,6 +154,21 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 _population.Add(t);
             }
             return compatible;
+        }
+
+        /// <summary>
+        /// Explicit fitness sharing - sets the adjusted fitness value for all the 
+        /// individuals in the spiecies
+        /// </summary>
+        public void AdjustFitness()
+        {
+            var populationSize = _population.Count + 1;
+            _representative.EvaluationInfo.AdjustedFitness = _representative.EvaluationInfo.Fitness / populationSize;
+            for (int i = 0; i < _population.Count; ++i)
+            {
+                var fitness = _population[i].EvaluationInfo.Fitness;
+                _population[i].EvaluationInfo.AdjustedFitness = fitness / populationSize;
+            }
         }
 
         #endregion

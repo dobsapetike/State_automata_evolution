@@ -55,7 +55,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// List of all species in the population
         /// </summary>
-        protected List<Species> _population = new List<Species>();
+        protected List<Species> _species = new List<Species>();
+
+        /// <summary>
+        /// List of all individuals in the population
+        /// </summary>
+        protected List<Transducer> _population = new List<Transducer>();
 
         private Random random = new Random();
 
@@ -189,20 +194,28 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Inserts a new transducer into a fitting species
-        /// If no suitable specie exists a new is created   
+        /// Inserts every transducer into a fitting species
+        /// If no suitable species exists a new one is created   
         /// </summary>
-        protected void InsertNewTransducer(Transducer t)
+        protected void SpeciatePopulation()
         {
-            foreach (var species in _population)
+            foreach (var individual in _population)
             {
-                if (species.InsertNew(t))
+                var foundSpecies = false;
+                foreach (var species in _species)
                 {
-                    return;
+                    if (species.InsertNew(individual))
+                    {
+                        foundSpecies = true;
+                        break;
+                    }
+                }
+                if (!foundSpecies)
+                {
+                    var newSpecies = new Species(_speciesIndex++, individual, _neatParameters);
+                    _species.Add(newSpecies);
                 }
             }
-            var newSpecies = new Species(_speciesIndex++, t, _neatParameters);
-            _population.Add(newSpecies);
         }
 
         /// <summary>
@@ -216,7 +229,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 var t = new Transducer();
                 t.AddState(new TransducerState(1));
                 t.AddState(new TransducerState(2));
-                InsertNewTransducer(t);
+                _population.Add(t);
             }
             _stateIndex = 2;
         }
@@ -292,19 +305,57 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
             }
 
-            AddConnection(mutated, notConnected);
-            AddNode(mutated, connected);
+            if (random.NextDouble() <= _neatParameters.AddTransitionMutationProbability)
+            {
+                AddConnection(mutated, notConnected);
+            }
+            if (random.NextDouble() <= _neatParameters.AddNodeMutationProbability)
+            {
+                AddNode(mutated, connected);
+            }
 
             return mutated;
         }
 
         /// <summary>
+        /// Performs mutation on a random transition
+        /// </summary>
+        /// <param name="t">the transducer for mutation</param>
+        protected virtual void MutateTransition(Transducer t)
+        {
+            if (t.States.Count == 0) return;
+            var selectedState = t.States[random.Next(t.States.Count)];
+            var transitions = selectedState.GetListOfTransitions();
+            if (transitions.Count == 0) return;
+
+            var selected = transitions[random.Next(transitions.Count)];
+
+            // trigger mutation
+            if (random.NextDouble() <= _generalParameters.TransitionTriggerMutationProbability)
+            {
+                var trigger = Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count()));
+
+                var dest = selectedState.GetDestinationIdByTrigger(selected.TransitionEvent);
+                selectedState.RemoveTransition(selected.TransitionEvent);
+                selectedState.AddTransition(trigger, selected, dest);
+                selected.TransitionEvent = trigger;
+            }
+
+            // action mutation
+            if (random.NextDouble() <= _generalParameters.TransitionActionMutationProbability)
+            {
+                var action = Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count()));
+                selected.TransitionAction = action;
+            }
+        }
+
+        /// <summary>
         /// Performs a crossover of two transducers
         /// </summary>
-        /// <param name="a">first parent</param>
-        /// <param name="b">second parent</param>
+        /// <param name="mommy">first parent</param>
+        /// <param name="daddy">second parent</param>
         /// <returns>the resulting offspring</returns>
-        protected virtual Transducer CrossTransducers(Transducer a, Transducer b)        
+        protected virtual Transducer CrossTransducers(Transducer mommy, Transducer daddy)        
         {
             Action<Transducer, SortedDictionary<int, List<TransducerTransition>>> SaveTransitions = (T, D) =>
             {
@@ -324,8 +375,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
             var transitions = new SortedDictionary<int, List<TransducerTransition>>();
             
-            SaveTransitions(a, transitions);
-            SaveTransitions(b, transitions);
+            SaveTransitions(mommy, transitions);
+            SaveTransitions(daddy, transitions);
 
             var offspring = new Transducer();
 
@@ -359,6 +410,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     // finalizations
                     return null;
                 }
+
+                SpeciatePopulation();
+
                 // perform evaluation, selection, crossover, mutation
                 // replace population
                 return null;

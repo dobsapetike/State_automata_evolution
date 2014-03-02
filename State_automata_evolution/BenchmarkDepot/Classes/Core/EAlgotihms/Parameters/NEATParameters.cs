@@ -11,12 +11,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Defaults
 
-        const int DefaultMaxSpecieCount = 25;
+        const int DefaultMaxSpecieCount = -1;
         const double DefaultCompatibilityThreshold = 3.0;
 
         const double DefaultCoefExcessGeneFactor = 1.0;
         const double DefaultCoefDisjointGeneFactor = 1.0;
         const double DefaultCoefMatchinWeightDifferenceFactor = 0.3;
+        const double DefaultMatchingWeightDifferenceValue = 1.0;
+
+        const double DefaultAddNodeMutationProbability = 0.25;
+        const double DefaultAddTransitionMutationProbability = 0.25;
 
         #endregion
 
@@ -28,6 +32,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _coefExcessGeneFactor;
         private double _coefDisjointGeneFactor;
         private double _coefMatchingWeightDifferenceFactor;
+        private double _matchingWeightDifferenceValue;
+
+        private double _addNodeMutationProbability;
+        private double _addTransitionMutationProbability;
 
         #endregion
 
@@ -35,6 +43,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         /// <summary>
         /// Gets and sets the maximum number of species
+        /// If it's value is lower than 1 this parameter gets ignored, which
+        /// means unlimited amount of species
         /// </summary>
         public int MaxSpecieCount
         {
@@ -81,10 +91,42 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             set { _coefMatchingWeightDifferenceFactor = value; }
         }
 
+        /// <summary>
+        /// Gets and sets the value used instead of weight difference, in this case when
+        /// the transition action and trigger are the same
+        /// In case of one is mismatched the value is halved
+        /// </summary>
+        public double MatchingWeightDifferenceValue
+        {
+            get { return _matchingWeightDifferenceValue; }
+            set { _matchingWeightDifferenceValue = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random node(state) is added
+        /// </summary>
+        public double AddNodeMutationProbability
+        {
+            get { return _addNodeMutationProbability; }
+            set { _addNodeMutationProbability = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random transition is added
+        /// </summary>
+        public double AddTransitionMutationProbability
+        {
+            get { return _addTransitionMutationProbability; }
+            set { _addTransitionMutationProbability = value; }
+        }
+
         #endregion
 
         #region Constuctor
 
+        /// <summary>
+        /// Constructor sets the dafult value for all parameters
+        /// </summary>
         public NEATParameters()
         {
             _maxSpecieCount = DefaultMaxSpecieCount;
@@ -93,6 +135,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             _coefExcessGeneFactor = DefaultCoefExcessGeneFactor;
             _coefDisjointGeneFactor = DefaultCoefDisjointGeneFactor;
             _coefMatchingWeightDifferenceFactor = DefaultCoefMatchinWeightDifferenceFactor;
+            _matchingWeightDifferenceValue = DefaultMatchingWeightDifferenceValue;
+
+            _addNodeMutationProbability = DefaultAddNodeMutationProbability;
+            _addTransitionMutationProbability = DefaultAddTransitionMutationProbability;
         }
 
         #endregion

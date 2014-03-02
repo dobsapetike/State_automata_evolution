@@ -90,6 +90,16 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
+        /// Gets the id of the state where the transition - triggered by the given event - leads
+        /// </summary>
+        /// <returns>State id if such trigger exists, else -1</returns>
+        public int GetDestinationIdByTrigger(string trigger)
+        {
+            if (!_transitions.ContainsKey(trigger)) return -1;
+            return _transitions[trigger].Item2;
+        }
+
+        /// <summary>
         /// This method will be called when the automaton switches state
         /// </summary>
         /// <param name="action">The action that invokes the switching</param>
