@@ -88,9 +88,9 @@ namespace BenchmarkDepot.Classes.Core
         public int CompareTo(object obj)
         {
             var other = (Transducer) obj;
-            if (other.EvaluationInfo.Fitness != EvaluationInfo.Fitness)
+            if (other.EvaluationInfo.AdjustedFitness != EvaluationInfo.AdjustedFitness)
             {
-                return this.EvaluationInfo.Fitness.CompareTo(other.EvaluationInfo.Fitness);
+                return this.EvaluationInfo.AdjustedFitness.CompareTo(other.EvaluationInfo.AdjustedFitness);
             }
             return other.EvaluationInfo.Age.CompareTo(this.EvaluationInfo.Age);
         }

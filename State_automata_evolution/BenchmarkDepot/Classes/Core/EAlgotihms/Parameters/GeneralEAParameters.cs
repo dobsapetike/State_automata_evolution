@@ -11,7 +11,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Defaults
 
-        const int DefaultInitialPopulationSize = 25;
+        const int DefaultInitialPopulationSize = 30;
         const int DefaultMaxPopulationSize = 250;
         const int DefaultGenerationThreshold = 1500;
 

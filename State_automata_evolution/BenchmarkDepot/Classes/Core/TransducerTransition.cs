@@ -39,7 +39,7 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         public string ActionName 
         { 
-            get { return _transitionTranslation == null ? "null" : _transitionAction.Method.Name; } 
+            get { return _transitionAction == null ? "null" : _transitionAction.Method.Name; } 
         }
 
         /// <summary>

@@ -75,6 +75,7 @@
     <Compile Include="Classes\Misc\DelegateCommand.cs" />
     <Compile Include="Classes\GUI\ViewModel\BaseViewModel.cs" />
     <Compile Include="Classes\GUI\ViewModel\BenchmarkDepotViewModel.cs" />
+    <Compile Include="Classes\Misc\SortedList.cs" />
     <Compile Include="Classes\Misc\StringExtensions.cs" />
     <Compile Include="Classes\Core\Interfaces\IEvolutionaryAlgorithm.cs" />
     <Compile Include="Classes\Core\Interfaces\IExperiment.cs" />

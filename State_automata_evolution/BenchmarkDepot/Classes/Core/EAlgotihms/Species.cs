@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Misc = BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
-
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms
 {
@@ -22,9 +22,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private int _id;
 
         /// <summary>
-        /// Parameters needed for calculating the compatibility distance
+        /// Parameters needed for calculating the compatibility distance and spawn count
         /// </summary>
         private NEATParameters _neatParams;
+        private GeneralEAParameters _generalParam;
 
         /// <summary>
         /// A transducer representing the whole species - used for measuring the compatibility
@@ -35,7 +36,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// List of all transducers in the species
         /// </summary>
-        private List<Transducer> _population;
+        private Misc.SortedList<Transducer> _population;
 
         #endregion
 
@@ -54,20 +55,41 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public ReadOnlyCollection<Transducer> Population
         {
-            get { return _population.AsReadOnly(); }
+            get { return _population.ToList().AsReadOnly(); }
+        }
+
+        /// <summary>
+        /// Gets how many new transducers should be created
+        /// </summary>
+        public int SpawnCount
+        {
+            get { return Convert.ToInt32(_population.Count * _neatParams.SurvivalRate); }
+        }
+        
+        /// <summary>
+        /// Property for setting a new representative
+        /// </summary>
+        public Transducer Representative
+        {
+            set 
+            {
+                if (_representative == value) return;
+                _representative = value; 
+            }
         }
 
         #endregion
 
         #region Constructor
 
-        public Species(int id, Transducer representative, NEATParameters parameters)
+        public Species(int id, Transducer representative, NEATParameters paramN, GeneralEAParameters paramG)
         {
             _id = id;
             _representative = representative;
-            _neatParams = parameters;
+            _neatParams = paramN;
+            _generalParam = paramG;
 
-            _population = new List<Transducer>();
+            _population = new Misc.SortedList<Transducer> { _representative };
         }
 
         #endregion
@@ -139,6 +161,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
+            if (compDistance > 0.0)
+            {
+                ;
+            }
             return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
@@ -157,17 +183,54 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
+        /// Sets the fittest member as the representative
+        /// </summary>
+        public void SelectNewRepresentative()
+        {
+            var best = _population.Last();
+            if (best != _representative)
+            {
+                _representative = best;
+            }
+        }
+
+        /// <summary>
+        /// Method for clearing the poppulation at the end of every cycle
+        /// The representative stays in the species
+        /// </summary>
+        public void Clear()
+        {
+            _population.Clear();
+            _population.Add(_representative);
+        }
+
+        /// <summary>
+        /// Returns a random, but sufficiently fit candidate for 
+        /// mutation/crossover
+        /// </summary>
+        public Transducer GetCandidateForMultiplication()
+        {
+            if (_population.Count == 1) return _representative;
+
+            var r = new Random();
+            int amount = Convert.ToInt32(_population.Count * _neatParams.SurvivalRate);
+            // the best individuals are at the end of the collection
+            int selected = r.Next(_population.Count - amount, _population.Count);
+
+            return _population[selected];
+        }
+
+        /// <summary>
         /// Explicit fitness sharing - sets the adjusted fitness value for all the 
         /// individuals in the spiecies
         /// </summary>
         public void AdjustFitness()
         {
-            var populationSize = _population.Count + 1;
-            _representative.EvaluationInfo.AdjustedFitness = _representative.EvaluationInfo.Fitness / populationSize;
-            for (int i = 0; i < _population.Count; ++i)
+            var populationSize = _population.Count;
+            foreach (var individ in _population)
             {
-                var fitness = _population[i].EvaluationInfo.Fitness;
-                _population[i].EvaluationInfo.AdjustedFitness = fitness / populationSize;
+                var fitness = individ.EvaluationInfo.Fitness;
+                individ.EvaluationInfo.AdjustedFitness = fitness / populationSize;
             }
         }
 

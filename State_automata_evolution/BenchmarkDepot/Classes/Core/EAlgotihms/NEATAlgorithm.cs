@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Misc = BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
 using BenchmarkDepot.Classes.Core.Interfaces;
 
@@ -42,27 +43,27 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #region Parameters
 
-        protected NEATParameters _neatParameters = new NEATParameters();
-        protected GeneralEAParameters _generalParameters = new GeneralEAParameters();
+        protected NEATParameters _neatParameters;
+        protected GeneralEAParameters _generalParameters;
 
         #endregion
 
         /// <summary>
         /// List of all innovations that occurred during the current generation
         /// </summary>
-        protected List<Innovation> _innovations = new List<Innovation>();
+        protected List<Innovation> _innovations;
 
         /// <summary>
         /// List of all species in the population
         /// </summary>
-        protected List<Species> _species = new List<Species>();
+        protected List<Species> _species;
 
         /// <summary>
-        /// List of all individuals in the population
+        /// Sorted collection of all individuals in the population
         /// </summary>
-        protected List<Transducer> _population = new List<Transducer>();
+        protected Misc.SortedList<Transducer> _population;
 
-        private Random random = new Random();
+        private Random random;
 
         #endregion
 
@@ -133,6 +134,29 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Constructor initailizes the collections and sets the parameters
+        /// </summary>
+        public NEATAlgorithm()
+        {
+            _innovations = new List<Innovation>();
+            _species = new List<Species>();
+            _population = new Misc.SortedList<Transducer>();
+
+            _neatParameters = new NEATParameters();
+            _neatParameters.SurvivalRate = 0.35;
+            _neatParameters.CompatibilityThreshold = 1.5;
+            _neatParameters.MaxSpecieSize = 35;
+
+            _generalParameters = new GeneralEAParameters();
+
+            random = new Random();
+        }
+
+        #endregion
+
         #region Private/protected methods
 
         /// <summary>
@@ -194,28 +218,56 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Inserts every transducer into a fitting species
-        /// If no suitable species exists a new one is created   
+        /// Inserts every transducer into a fitting species.
+        /// If no suitable species exists a new one is created 
         /// </summary>
-        protected void SpeciatePopulation()
+        /// <param name="lastGenerationSpecieCount">Number of species created in the 
+        /// last generation for adjusting the species compatibility threshold</param>
+        protected virtual void SpeciatePopulation(int lastGenerationSpecieCount)
         {
             foreach (var individual in _population)
             {
                 var foundSpecies = false;
-                foreach (var species in _species)
+
+                while (!foundSpecies)
                 {
-                    if (species.InsertNew(individual))
+                    foreach (var species in _species)
                     {
-                        foundSpecies = true;
-                        break;
+                        if (species.InsertNew(individual))
+                        {
+                            foundSpecies = true;
+                            break;
+                        }
                     }
-                }
-                if (!foundSpecies)
-                {
-                    var newSpecies = new Species(_speciesIndex++, individual, _neatParameters);
-                    _species.Add(newSpecies);
-                }
-            }
+                    if (!foundSpecies)
+                    {
+                        if (_species.Count == _neatParameters.MaxSpecieSize)
+                        {
+                            // new species cannot be created, so lower the threshold and try again
+                            _neatParameters.CompatibilityThreshold -= 0.15;
+                            if (_neatParameters.CompatibilityThreshold <= _neatParameters.MinCompatibilityThreshold)
+                            {
+                                // no suitable species and the threshold can not be lowered - skip this transducer
+                                foundSpecies = true;
+                            }
+                            continue;
+                        }
+                        foundSpecies = true;
+                        var newSpecies = new Species(_speciesIndex++, individual, _neatParameters, _generalParameters);
+                        _species.Add(newSpecies);
+                    }
+                } // found species
+            }  // next transducer
+        }
+
+        // Creates a random transition with given innovation number
+        private TransducerTransition CreateRandomTransition(int innovation)
+        {
+            return new TransducerTransition(
+                Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count())),
+                Experiment.TransitionTranslations.ElementAt(random.Next(Experiment.TransitionTranslations.Count())),
+                innovation
+            );
         }
 
         /// <summary>
@@ -227,11 +279,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
             {
                 var t = new Transducer();
-                t.AddState(new TransducerState(1));
-                t.AddState(new TransducerState(2));
+                var s1 = new TransducerState(1);
+                var s2 = new TransducerState(2);
+                t.AddState(s1);
+                t.AddState(s2);
+                var trans = CreateRandomTransition(1);
+                t.AddTransition(s1, s2, 
+                    Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count())), trans);
                 _population.Add(t);
             }
             _stateIndex = 2;
+            _globalInnovationNumber++;
         }
 
         /// <summary>
@@ -240,16 +298,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <returns>the mutated transducer</returns>
         protected virtual Transducer MutateTransducer(Transducer transducer)                  
         {
-            // Creates a random transition with given innovation number
-            Func<int, TransducerTransition> CreateRandomTransition = (innovation) =>
-            {
-                return new TransducerTransition(
-                    Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count())),
-                    Experiment.TransitionTranslations.ElementAt(random.Next(Experiment.TransitionTranslations.Count())),
-                    innovation
-                );
-            };
-
             // 'Add connection' mutation - adds randomly a new transition between two states
             Action<Transducer, List<Tuple<int, int>>> AddConnection = (T,Candidates) =>
             {
@@ -401,21 +449,125 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         {
             // TODO
             // create a new thread for the evolutionary cycle so the gui stays responsive
-            Initialization();
 
+            Initialization();
+            // evaluate the initial population
+            foreach (var t in _population)
+            {
+                var fitness = Experiment.Run(t);
+                t.EvaluationInfo.Fitness = fitness;
+            }
+
+            var lastGenerationSpecieCount = _species.Count;
+
+            // evolutionary cycle
             for (;;)
             {
+
                 if (++_generation == _generalParameters.GenerationThreshold)
                 {
-                    // finalizations
-                    return null;
+                    // return the most fit transducer
+                    return _population.Last();
                 }
 
-                SpeciatePopulation();
+                // check if there is a sufficient solution
+                var bestOne = _population.Last();
+                if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
+                {
+                    return bestOne;
+                }
 
-                // perform evaluation, selection, crossover, mutation
+                var newGeneration = new Misc.SortedList<Transducer>();
+
+                // Respeciate the population
+                SpeciatePopulation(lastGenerationSpecieCount);
+                if (lastGenerationSpecieCount == _species.Count)
+                {
+                    // no new species created, lower the threshold
+                    _neatParameters.CompatibilityThreshold -= 0.15;
+                }
+                else if (_species.Count - lastGenerationSpecieCount >= _species.Count / 3)
+                {
+                    // many new species created, try higher threshold
+                    _neatParameters.CompatibilityThreshold += 0.15;
+                }
+                lastGenerationSpecieCount = _species.Count;
+
+
+                // For each species perform selection and mutation resp. crossover
+                foreach (var species in _species)
+                {
+                    int amountToSpawn = species.SpawnCount;
+                    while (amountToSpawn-- > 0)
+                    {
+                        Transducer babyTransducer;
+
+                        var c = species.GetCandidateForMultiplication();
+                        if (random.NextDouble() > 0.5)
+                        {
+                            // crossover
+                            var cc = species.GetCandidateForMultiplication();
+                            int attemptsLeft = 5;
+                            while (attemptsLeft-- > 0)
+                            {
+                                if (c != cc) break;
+                                cc = species.GetCandidateForMultiplication();
+                            }
+                            
+                            if (c == cc) continue;
+                            babyTransducer = CrossTransducers(c, cc);
+                        }
+                        else
+                        {
+                            // structural mutation
+                            babyTransducer = MutateTransducer(c);
+                        }
+
+                        // mutate the newcomer
+                        var count = random.Next(10);
+                        for (int i = 0; i < random.Next(10); ++i)
+                        {
+                            babyTransducer = MutateTransducer(babyTransducer);
+                            MutateTransition(babyTransducer);
+                        }
+                        
+                        // evaluate the newcomer
+                        var fitness = Experiment.Run(babyTransducer);
+                        babyTransducer.EvaluationInfo.Fitness = fitness;
+
+                        newGeneration.Add(babyTransducer);
+                    }
+                }
+
+                // also perform mutation among the veterans
+                var amount = Convert.ToInt32(_population.Count * _generalParameters.MutationProportion);
+                while (amount-- > 0)
+                {
+                    var t = _population.ElementAt(random.Next(_population.Count));
+                    var count = random.Next(5);
+                    for (int i = 0; i < count; ++i)
+                    {
+                        t = MutateTransducer(t);
+                        MutateTransition(t);
+                    }
+                    // reevaluate it
+                    var f = Experiment.Run(t);
+                    t.EvaluationInfo.Fitness = f;
+                }
+
+                // force out explicit fitness sharing and clear the species
+                foreach (var species in _species)
+                {
+                    species.AdjustFitness();
+                    species.SelectNewRepresentative();
+                    species.Clear();
+                }
+
                 // replace population
-                return null;
+                var amountToSurvive = Convert.ToInt32(_population.Count * _generalParameters.ReplacementProportion);
+                var survivors = _population.Select(x => x).Skip(_population.Count - amountToSurvive);
+                newGeneration.AddRange(survivors);
+                _population = newGeneration;
             }
         }
 

@@ -11,23 +11,27 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Defaults
 
-        const int DefaultMaxSpecieCount = -1;
+        const int DefaultMaxSpecieSize = -1;
         const double DefaultCompatibilityThreshold = 3.0;
+        const double DefaultMinCompatibilityThreshold = 0.5;
 
         const double DefaultCoefExcessGeneFactor = 1.0;
         const double DefaultCoefDisjointGeneFactor = 1.0;
-        const double DefaultCoefMatchinWeightDifferenceFactor = 0.3;
+        const double DefaultCoefMatchinWeightDifferenceFactor = 1.0;
         const double DefaultMatchingWeightDifferenceValue = 1.0;
 
         const double DefaultAddNodeMutationProbability = 0.25;
         const double DefaultAddTransitionMutationProbability = 0.25;
 
+        const double DefaultSurvivalRate = 0.5;
+
         #endregion
 
         #region Private fields
 
-        private int _maxSpecieCount;
+        private int _maxSpecieSize;
         private double _compatibilityThreshold;
+        private double _minCompatibilityThreshold;
 
         private double _coefExcessGeneFactor;
         private double _coefDisjointGeneFactor;
@@ -37,19 +41,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _addNodeMutationProbability;
         private double _addTransitionMutationProbability;
 
+        private double _survivalRate;
+
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Gets and sets the maximum number of species
-        /// If it's value is lower than 1 this parameter gets ignored, which
-        /// means unlimited amount of species
+        /// Gets and sets the maximum number of individuals in a species
         /// </summary>
-        public int MaxSpecieCount
+        public int MaxSpecieSize
         {
-            get { return _maxSpecieCount; }
-            set { _maxSpecieCount = value; }
+            get { return _maxSpecieSize; }
+            set { _maxSpecieSize = value; }
         }
 
         /// <summary>
@@ -58,7 +62,30 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CompatibilityThreshold
         {
             get { return _compatibilityThreshold; }
-            set { _compatibilityThreshold = value; }
+            set 
+            {
+                if (value < _minCompatibilityThreshold)
+                {
+                    _compatibilityThreshold = _minCompatibilityThreshold;
+                }
+                _compatibilityThreshold = value; 
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the minimum value of the compatibility threshold
+        /// </summary>
+        public double MinCompatibilityThreshold
+        {
+            get { return _minCompatibilityThreshold; }
+            set
+            {
+                if (_compatibilityThreshold < value)
+                {
+                    _compatibilityThreshold = value;
+                }
+                _minCompatibilityThreshold = value;
+            }
         }
 
         /// <summary>
@@ -120,6 +147,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             set { _addTransitionMutationProbability = value; }
         }
 
+        /// <summary>
+        /// Gets and sets what top percent of the species is qualified for 
+        /// mutation/crossover
+        /// </summary>
+        public double SurvivalRate
+        {
+            get { return _survivalRate; }
+            set { _survivalRate = value; }
+        }
+
         #endregion
 
         #region Constuctor
@@ -129,8 +166,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         /// </summary>
         public NEATParameters()
         {
-            _maxSpecieCount = DefaultMaxSpecieCount;
+            _maxSpecieSize = DefaultMaxSpecieSize;
             _compatibilityThreshold = DefaultCompatibilityThreshold;
+            _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
 
             _coefExcessGeneFactor = DefaultCoefExcessGeneFactor;
             _coefDisjointGeneFactor = DefaultCoefDisjointGeneFactor;
@@ -139,6 +177,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
             _addNodeMutationProbability = DefaultAddNodeMutationProbability;
             _addTransitionMutationProbability = DefaultAddTransitionMutationProbability;
+
+            _survivalRate = DefaultSurvivalRate;
         }
 
         #endregion
