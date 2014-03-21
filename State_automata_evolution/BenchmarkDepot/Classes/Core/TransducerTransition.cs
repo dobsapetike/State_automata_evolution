@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using System.Collections;
+using BenchmarkDepot.Classes.Core.Interfaces;
 
 namespace BenchmarkDepot.Classes.Core
 {
@@ -25,13 +28,13 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
-        /// The event activating this transition
+        /// The trigger activating this transition
         /// </summary>
-        private string _transitionEvent;
-        public string TransitionEvent
+        private TransitionTrigger _transitionTrigger;
+        public TransitionTrigger TransitionTrigger
         {
-            get { return _transitionEvent; }
-            set { _transitionEvent = value; }
+            get { return _transitionTrigger; }
+            set { _transitionTrigger = value; }
         }
 
         /// <summary>

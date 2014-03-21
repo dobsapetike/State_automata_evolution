@@ -11,7 +11,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Defaults
 
-        const int DefaultMaxSpecieSize = -1;
+        const int DefaultMaxSpecieCount = 50;
+        const int DefaultSpeciesAllowedStagnatedGenerationCount = 3;
         const double DefaultCompatibilityThreshold = 3.0;
         const double DefaultMinCompatibilityThreshold = 0.5;
 
@@ -29,7 +30,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Private fields
 
-        private int _maxSpecieSize;
+        private int _maxSpeciesCount;
+        private int _allowedSpeciesStagnatedGenerationCount;
         private double _compatibilityThreshold;
         private double _minCompatibilityThreshold;
 
@@ -48,12 +50,22 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Properties
 
         /// <summary>
-        /// Gets and sets the maximum number of individuals in a species
+        /// Gets and sets the maximum number of species
         /// </summary>
-        public int MaxSpecieSize
+        public int MaxSpecieCount
         {
-            get { return _maxSpecieSize; }
-            set { _maxSpecieSize = value; }
+            get { return _maxSpeciesCount; }
+            set { _maxSpeciesCount = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the maximum number of generations a species is allowed to survive
+        /// without any kind of improvement
+        /// </summary>
+        public int AllowedSpeciesStagnatedGenerationCount
+        {
+            get { return _allowedSpeciesStagnatedGenerationCount; }
+            set { _allowedSpeciesStagnatedGenerationCount = value; }
         }
 
         /// <summary>
@@ -67,6 +79,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 if (value < _minCompatibilityThreshold)
                 {
                     _compatibilityThreshold = _minCompatibilityThreshold;
+                    return;
                 }
                 _compatibilityThreshold = value; 
             }
@@ -80,11 +93,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             get { return _minCompatibilityThreshold; }
             set
             {
+                _minCompatibilityThreshold = value;
                 if (_compatibilityThreshold < value)
                 {
                     _compatibilityThreshold = value;
                 }
-                _minCompatibilityThreshold = value;
             }
         }
 
@@ -162,11 +175,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Constuctor
 
         /// <summary>
-        /// Constructor sets the dafult value for all parameters
+        /// Constructor sets the dafult value for every parameters
         /// </summary>
         public NEATParameters()
         {
-            _maxSpecieSize = DefaultMaxSpecieSize;
+            _maxSpeciesCount = DefaultMaxSpecieCount;
+            _allowedSpeciesStagnatedGenerationCount = DefaultSpeciesAllowedStagnatedGenerationCount;
             _compatibilityThreshold = DefaultCompatibilityThreshold;
             _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
 

@@ -84,6 +84,13 @@ namespace BenchmarkDepot.Classes.ViewModel
                 new Exp("experiment", "experiment description"),
                 new Exp("haha", "hihi")
             };
+
+            NEATAlgorithm n = new NEATAlgorithm();
+            var ee = new Exp("test", "test");
+            n.Experiment = ee;
+
+            var res = n.Evolve();
+            System.Windows.MessageBox.Show(res.ToString());
         }
 
         #endregion
@@ -146,3 +153,5 @@ namespace BenchmarkDepot.Classes.ViewModel
     }
 
 }
+
+

@@ -59,7 +59,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Gets how many new transducers should be created
+        /// Number of generations no impovement occured in the species
+        /// </summary>
+        public int StagnatedGenerations
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets how many new transducers should be created in the new generation
         /// </summary>
         public int SpawnCount
         {
@@ -71,6 +80,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public Transducer Representative
         {
+            get
+            {
+                return _representative;
+            }
             set 
             {
                 if (_representative == value) return;
@@ -104,9 +117,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             
             // Returns a sorted collection of all innovations in a given transducer along with the 
             // transition actions and triggers
-            Func<Transducer, SortedDictionary<int, Tuple<HashSet<string>,HashSet<string>>>> GetInnovations = (T) =>
+            Func<Transducer, SortedDictionary<int, Tuple<HashSet<TransitionTrigger>,HashSet<string>>>> GetInnovations = (T) =>
             {
-                var result = new SortedDictionary<int, Tuple<HashSet<string>,HashSet<string>>>();
+                var result = new SortedDictionary<int, Tuple<HashSet<TransitionTrigger>,HashSet<string>>>();
                 foreach (var state in T.States)
                 {
                     var trans = state.GetListOfTransitions();
@@ -115,10 +128,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         var inNumb = tran.InnovationNumber;
                         if (!result.ContainsKey(inNumb))
                         {
-                            result.Add(inNumb, new Tuple<HashSet<string>,HashSet<string>>
-                                (new HashSet<string>(),new HashSet<string>()));
+                            result.Add(inNumb, new Tuple<HashSet<TransitionTrigger>,HashSet<string>>
+                                (new HashSet<TransitionTrigger>(),new HashSet<string>()));
                         }
-                        result[inNumb].Item1.Add(tran.TransitionEvent);
+                        result[inNumb].Item1.Add(tran.TransitionTrigger);
                         result[inNumb].Item2.Add(tran.ActionName);
                     }
                 }
@@ -161,25 +174,48 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
-            if (compDistance > 0.0)
-            {
-                ;
-            }
             return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
         /// <summary>
-        /// Adds a new individual into the population if it's compatible
+        /// Adds a new individual into the population if it's compatible with the representative
         /// </summary>
         /// <returns>whether the insertion was successful</returns>
         public bool InsertNew(Transducer t)
         {
+            if (_population.Count == _neatParams.MaxSpecieCount) return false; 
+
             var compatible = IsCompatible(t);
             if (compatible)
             {
                 _population.Add(t);
             }
             return compatible;
+        }
+
+        /// <summary>
+        /// Called at the start of every generation.
+        /// Increases the age of every transducer
+        /// </summary>
+        public void GenerationStart()
+        {
+            foreach (var p in _population)
+            {
+                p.EvaluationInfo.HappyBirthday();
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the spieces has enough members - if not, mark this generation as stagnating.
+        /// Should be called only once per generation, at the end.
+        /// </summary>
+        public void CheckStagnation()
+        {
+            if (_population.Count <= 1) StagnatedGenerations = _neatParams.AllowedSpeciesStagnatedGenerationCount + 1;
+            if (_population.Count < Convert.ToInt32(_neatParams.MaxSpecieCount * 0.2))
+            {
+                ++StagnatedGenerations;
+            }
         }
 
         /// <summary>
@@ -195,7 +231,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
-        /// Method for clearing the poppulation at the end of every cycle
+        /// Method for clearing the population at the end of every cycle
         /// The representative stays in the species
         /// </summary>
         public void Clear()
@@ -222,7 +258,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         /// <summary>
         /// Explicit fitness sharing - sets the adjusted fitness value for all the 
-        /// individuals in the spiecies
+        /// individuals in the species
         /// </summary>
         public void AdjustFitness()
         {

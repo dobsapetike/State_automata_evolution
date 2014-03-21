@@ -18,7 +18,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private double _fitness;
 
         /// <summary>
-        /// Adjusted fitness value - explicitly shared fitness of the specie 
+        /// Adjusted fitness value - explicitly shared fitness of the species
         /// </summary>
         private double _adjustedFitness;
 
@@ -28,9 +28,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private int _evaluationCount;
 
         /// <summary>
-        /// Number of skipped evaluations - eg. when no structural modifications occurred  
+        /// Number of generation the transducer survived
         /// </summary>
-        private int _evalutationSkipCount;
+        private int _age;
 
         #endregion
 
@@ -63,7 +63,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             {
                 if (value < 0.0)
                 {
-                    throw new ArgumentException("Fitness value must be a positive number!");
+                    throw new ArgumentException("Adjusted fitness value must be a positive number!");
                 }
                 _adjustedFitness = value;
             }
@@ -74,7 +74,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public bool IsEvaluated
         {
-            get { return _evaluationCount != 0 || _evalutationSkipCount != 0; }
+            get { return _evaluationCount != 0; }
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public int SkippedEvaluationCount
         {
-            get { return _evalutationSkipCount; }
+            get { return _age - _evaluationCount; }
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public int Age
         {
-            get { return _evaluationCount + _evalutationSkipCount; }
+            get { return _age; }
         }
 
         #endregion
@@ -106,12 +106,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         #region Public methods
 
         /// <summary>
-        /// Called when the evaluation of the transducer is redundant. 
-        /// Increases the skip count.
+        /// Called at the start of a new generation.
+        /// Increases the age of the transducer.
         /// </summary>
-        public void SkipEvaluation()
+        public void HappyBirthday()
         {
-            ++_evalutationSkipCount;
+            ++_age;
         }
 
         #endregion

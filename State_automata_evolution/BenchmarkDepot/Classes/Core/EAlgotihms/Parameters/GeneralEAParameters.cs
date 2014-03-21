@@ -12,7 +12,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Defaults
 
         const int DefaultInitialPopulationSize = 30;
-        const int DefaultMaxPopulationSize = 250;
+        const int DefaultMaxPopulationSize = 750;
         const int DefaultGenerationThreshold = 1500;
 
         const double DefaultSelectionProportion = 0.25;
@@ -156,7 +156,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Constuctor
 
         /// <summary>
-        /// Constructor sets the dafult value for all parameters
+        /// Constructor sets the dafult value for every parameters
         /// </summary>
         public GeneralEAParameters()
         {

@@ -146,11 +146,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             _population = new Misc.SortedList<Transducer>();
 
             _neatParameters = new NEATParameters();
-            _neatParameters.SurvivalRate = 0.35;
-            _neatParameters.CompatibilityThreshold = 1.5;
-            _neatParameters.MaxSpecieSize = 35;
+            _neatParameters.SurvivalRate = 0.5;
+            _neatParameters.CompatibilityThreshold = 10;
+            _neatParameters.MaxSpecieCount = 35;
+            _neatParameters.AddNodeMutationProbability = 0.3;
+            _neatParameters.AddTransitionMutationProbability = 0.85;
 
             _generalParameters = new GeneralEAParameters();
+            _generalParameters.MutationProportion = 0.9;
+            _generalParameters.TransitionTriggerMutationProbability = 0.95;
+            _generalParameters.TransitionActionMutationProbability = 0.88;
+            _generalParameters.TransitionDeletionMutationProbability = 0.6;
+            _generalParameters.StateDeletionMutationProbability = 0.3;
+            _generalParameters.SelectionProportion = 0.65;
 
             random = new Random();
         }
@@ -158,6 +166,40 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         #endregion
 
         #region Private/protected methods
+
+        #region Utility functions
+
+        /// <summary>
+        /// Creates a random transition with given innovation number
+        /// </summary>
+        private TransducerTransition CreateRandomTransition(int innovation)
+        {
+            return new TransducerTransition(
+                Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count())),
+                Experiment.TransitionTranslations.ElementAt(random.Next(Experiment.TransitionTranslations.Count())),
+                innovation
+            );
+        }
+
+        /// <summary>
+        /// Creates a random transtion trigger - if possible with random conditional
+        /// </summary>
+        private TransitionTrigger CreateRandomTrigger()
+        {
+            var trigger = Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count()));
+            if (trigger.IsConditional)
+            {
+                trigger.Parameter = random.Next((int)trigger.MinParameterValue, 
+                    (int)trigger.MaxParameterValue) + random.NextDouble();
+                var cond = random.Next(Enum.GetValues(typeof(TriggerConditionOperator)).Length);
+                trigger.ConditionOperator = (TriggerConditionOperator)cond;
+            }
+            return trigger;
+        }
+
+        #endregion
+
+        #region Innovation control
 
         /// <summary>
         /// Given the id of two states, detects whether a connection has added between them or not
@@ -217,89 +259,18 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             }
         }
 
-        /// <summary>
-        /// Inserts every transducer into a fitting species.
-        /// If no suitable species exists a new one is created 
-        /// </summary>
-        /// <param name="lastGenerationSpecieCount">Number of species created in the 
-        /// last generation for adjusting the species compatibility threshold</param>
-        protected virtual void SpeciatePopulation(int lastGenerationSpecieCount)
-        {
-            foreach (var individual in _population)
-            {
-                var foundSpecies = false;
+        #endregion
 
-                while (!foundSpecies)
-                {
-                    foreach (var species in _species)
-                    {
-                        if (species.InsertNew(individual))
-                        {
-                            foundSpecies = true;
-                            break;
-                        }
-                    }
-                    if (!foundSpecies)
-                    {
-                        if (_species.Count == _neatParameters.MaxSpecieSize)
-                        {
-                            // new species cannot be created, so lower the threshold and try again
-                            _neatParameters.CompatibilityThreshold -= 0.15;
-                            if (_neatParameters.CompatibilityThreshold <= _neatParameters.MinCompatibilityThreshold)
-                            {
-                                // no suitable species and the threshold can not be lowered - skip this transducer
-                                foundSpecies = true;
-                            }
-                            continue;
-                        }
-                        foundSpecies = true;
-                        var newSpecies = new Species(_speciesIndex++, individual, _neatParameters, _generalParameters);
-                        _species.Add(newSpecies);
-                    }
-                } // found species
-            }  // next transducer
-        }
-
-        // Creates a random transition with given innovation number
-        private TransducerTransition CreateRandomTransition(int innovation)
-        {
-            return new TransducerTransition(
-                Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count())),
-                Experiment.TransitionTranslations.ElementAt(random.Next(Experiment.TransitionTranslations.Count())),
-                innovation
-            );
-        }
+        #region Mutation
 
         /// <summary>
-        /// Initializes the population
-        /// </summary>
-        protected virtual void Initialization()
-        {
-            // Starting out minimally - ???? only two states without any connections ????
-            for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
-            {
-                var t = new Transducer();
-                var s1 = new TransducerState(1);
-                var s2 = new TransducerState(2);
-                t.AddState(s1);
-                t.AddState(s2);
-                var trans = CreateRandomTransition(1);
-                t.AddTransition(s1, s2, 
-                    Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count())), trans);
-                _population.Add(t);
-            }
-            _stateIndex = 2;
-            _globalInnovationNumber++;
-        }
-
-        /// <summary>
-        /// Performs a mutation on a transducer
+        /// Created a new transition by performing a structural mutation on an existing transducer
         /// </summary>
         /// <returns>the mutated transducer</returns>
         protected virtual Transducer MutateTransducer(Transducer transducer)                  
         {
             // 'Add connection' mutation - adds randomly a new transition between two states
-            Action<Transducer, List<Tuple<int, int>>> AddConnection = (T,Candidates) =>
+            Action<Transducer, List<Tuple<int, int>>> AddConnection = (T, Candidates) =>
             {
                 if (Candidates.Count == 0) return;
 
@@ -307,8 +278,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
                 var transition = CreateRandomTransition(DetectInnovationNumberForConnection
                     (T.States[selected.Item1].ID, T.States[selected.Item2].ID));
-                T.AddTransition(T.States[selected.Item1], T.States[selected.Item2],
-                    Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count())), transition);
+                T.AddTransition(T.States[selected.Item1], T.States[selected.Item2], 
+                    CreateRandomTrigger(), transition);
             };
 
             // 'Add node' mutation - adds randomly a new state between two connected states 
@@ -326,9 +297,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 var newState = new TransducerState(innovation.Item3);
                 T.AddState(newState);
                 T.AddTransition(T.States[selected.Item1], newState,
-                    Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count())), firstTransition);
+                    CreateRandomTrigger(), firstTransition);
                 T.AddTransition(newState, T.States[selected.Item2],
-                    Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count())), secondTransition);
+                    CreateRandomTrigger(), secondTransition);
             };
 
 
@@ -366,6 +337,53 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         }
 
         /// <summary>
+        /// Performs mutation by deletion of a node / transition
+        /// </summary>
+        /// <param name="t">the transducer for mutation</param>
+        protected virtual void MutateByDeletion(Transducer t)
+        {
+            // remove transition mutation
+            if (random.NextDouble() <= _generalParameters.TransitionDeletionMutationProbability)
+            {
+                var connected = new List<Tuple<int, int>>();
+                for (int i = 0; i < t.States.Count; ++i)
+                {
+                    for (int j = 0; j < t.States.Count; ++j)
+                    {
+                        if (i == j) continue;
+                        if (t.States[i].GetTransition(t.States[j].ID) != null)
+                        {
+                            connected.Add(new Tuple<int, int>(i, j));
+                        }
+                    }
+                }
+                if (connected.Count > 0)
+                {
+                    var selected = connected[random.Next(connected.Count)];
+                    t.States[selected.Item1].RemoveTransition(t.States[selected.Item2].ID);
+                }
+            }
+
+            // remove state mutation
+            if (t.States.Count <= 1) return;
+            if (random.NextDouble() <= _generalParameters.StateDeletionMutationProbability)
+            {
+                var index = random.Next(1, t.States.Count); // starting state cannot be deleted
+                var selected = t.States[index];
+                selected.ResetTransitions();
+                t.RemoveStateAt(index);
+                foreach (var s in t.States)
+                {
+                    var removed = s.RemoveTransition(selected.ID);
+                    while (removed)
+                    {
+                        removed = s.RemoveTransition(selected.ID);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs mutation on a random transition
         /// </summary>
         /// <param name="t">the transducer for mutation</param>
@@ -381,12 +399,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // trigger mutation
             if (random.NextDouble() <= _generalParameters.TransitionTriggerMutationProbability)
             {
-                var trigger = Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count()));
+                var trigger = CreateRandomTrigger();
 
-                var dest = selectedState.GetDestinationIdByTrigger(selected.TransitionEvent);
-                selectedState.RemoveTransition(selected.TransitionEvent);
+                var dest = selectedState.GetDestinationIdByTrigger(selected.TransitionTrigger);
+                selectedState.RemoveTransition(selected.TransitionTrigger);
                 selectedState.AddTransition(trigger, selected, dest);
-                selected.TransitionEvent = trigger;
+                selected.TransitionTrigger = trigger;
             }
 
             // action mutation
@@ -396,6 +414,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 selected.TransitionAction = action;
             }
         }
+
+        #endregion
+
+        #region Crossover
 
         /// <summary>
         /// Performs a crossover of two transducers
@@ -435,11 +457,70 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 var selected = tran.Value[random.Next(tran.Value.Count)];
                 var from = new TransducerState(selected.StateFrom);
                 var to = new TransducerState(selected.StateTo);
-                offspring.AddTransition(from, to, selected.TransitionEvent, (TransducerTransition)selected.Clone());
+                offspring.AddTransition(from, to, selected.TransitionTrigger, (TransducerTransition)selected.Clone());
             }
 
             return offspring;
         }
+
+        #endregion
+
+        #region Speciation
+
+        /// <summary>
+        /// Inserts every transducer into a fitting species.
+        /// If no suitable species exists a new one is created 
+        /// </summary>
+        protected virtual void SpeciatePopulation()
+        {
+            foreach (var individual in _population)
+            {
+                var foundSpecies = false;
+
+                foreach (var species in _species)
+                {
+                    if (species.InsertNew(individual))
+                    {
+                        foundSpecies = true;
+                        break;
+                    }
+                }
+                if (!foundSpecies)
+                {
+                    var newSpecies = new Species(_speciesIndex++, individual, _neatParameters, _generalParameters);
+                    _species.Add(newSpecies);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Initialization
+
+        /// <summary>
+        /// Initializes the population
+        /// </summary>
+        protected virtual void InitializePopulation()
+        {
+            // Starting out minimally - ???? only two states wit a random transition ????
+            // TODO refactor this
+            for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
+            {
+                var t = new Transducer();
+                var s1 = new TransducerState(1);
+                var s2 = new TransducerState(2);
+                t.AddState(s1);
+                t.AddState(s2);
+                var trans = CreateRandomTransition(1);
+                t.AddTransition(s1, s2,
+                    CreateRandomTrigger(), trans);
+                _population.Add(t);
+            }
+            _stateIndex = 2;
+            _globalInnovationNumber++;
+        }
+
+        #endregion
 
         #endregion
 
@@ -450,7 +531,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // TODO
             // create a new thread for the evolutionary cycle so the gui stays responsive
 
-            Initialization();
+            InitializePopulation();
             // evaluate the initial population
             foreach (var t in _population)
             {
@@ -458,41 +539,62 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 t.EvaluationInfo.Fitness = fitness;
             }
 
-            var lastGenerationSpecieCount = _species.Count;
-
             // evolutionary cycle
             for (;;)
             {
-
+                Console.Out.WriteLine("generation:{2}\npop number: {0}\nspec number: {1}", _population.Count, _species.Count, _generation+1);
                 if (++_generation == _generalParameters.GenerationThreshold)
                 {
-                    // return the most fit transducer
+                    // no more generations allowed, return the most fit transducer
                     return _population.Last();
                 }
 
                 // check if there is a sufficient solution
                 var bestOne = _population.Last();
+                Console.Out.WriteLine("best fitness:{0}", bestOne.EvaluationInfo.Fitness);
                 if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
                 {
                     return bestOne;
                 }
 
-                var newGeneration = new Misc.SortedList<Transducer>();
+                // tell each species it's a new generation, purge stagnating species
+                var toKill = new HashSet<Species>();
+                foreach (var species in _species)
+                {
+                    species.GenerationStart();
+                    if (species.StagnatedGenerations > _neatParameters.AllowedSpeciesStagnatedGenerationCount)
+                    {
+                        toKill.Add(species);
+                    }
+                }
+                Console.WriteLine("killed species: {0}", toKill.Count);
+                foreach (var s in toKill)
+                {
+                    s.Clear();
+                    _species.Remove(s);
+                }
 
                 // Respeciate the population
-                SpeciatePopulation(lastGenerationSpecieCount);
-                if (lastGenerationSpecieCount == _species.Count)
+                SpeciatePopulation();
+                // adjust compatibility threashold based on the number of species
+                if (_neatParameters.MaxSpecieCount > 1) // otherwise this feature is turned off 
                 {
-                    // no new species created, lower the threshold
-                    _neatParameters.CompatibilityThreshold -= 0.15;
+                    const double delta = 0.5;
+                    if (_species.Count < _neatParameters.MaxSpecieCount * 0.1)
+                    {
+                        // more species needed, try higher threshold
+                        _neatParameters.CompatibilityThreshold += delta;
+                    }
+                    else if (_species.Count > _neatParameters.MaxSpecieCount)
+                    {
+                        // too many species, lower the threshold
+                        _neatParameters.CompatibilityThreshold -= delta;
+                    }
                 }
-                else if (_species.Count - lastGenerationSpecieCount >= _species.Count / 3)
-                {
-                    // many new species created, try higher threshold
-                    _neatParameters.CompatibilityThreshold += 0.15;
-                }
-                lastGenerationSpecieCount = _species.Count;
+                Console.WriteLine("specie threshold: {0}", _neatParameters.CompatibilityThreshold);
 
+                // a collection of individuals, which will replace the current generation
+                var newGeneration = new Misc.SortedList<Transducer>();
 
                 // For each species perform selection and mutation resp. crossover
                 foreach (var species in _species)
@@ -503,7 +605,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         Transducer babyTransducer;
 
                         var c = species.GetCandidateForMultiplication();
-                        if (random.NextDouble() > 0.5)
+                        if (species.Population.Count > 1 && random.NextDouble() > 0.4)
                         {
                             // crossover
                             var cc = species.GetCandidateForMultiplication();
@@ -524,12 +626,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         }
 
                         // mutate the newcomer
-                        var count = random.Next(10);
-                        for (int i = 0; i < random.Next(10); ++i)
-                        {
-                            babyTransducer = MutateTransducer(babyTransducer);
-                            MutateTransition(babyTransducer);
-                        }
+                        babyTransducer = MutateTransducer(babyTransducer);
+                        MutateTransition(babyTransducer);
+                        MutateByDeletion(babyTransducer);
                         
                         // evaluate the newcomer
                         var fitness = Experiment.Run(babyTransducer);
@@ -538,18 +637,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         newGeneration.Add(babyTransducer);
                     }
                 }
+                Console.WriteLine("newbies created: {0}\n", newGeneration.Count);
 
                 // also perform mutation among the veterans
                 var amount = Convert.ToInt32(_population.Count * _generalParameters.MutationProportion);
                 while (amount-- > 0)
                 {
                     var t = _population.ElementAt(random.Next(_population.Count));
-                    var count = random.Next(5);
-                    for (int i = 0; i < count; ++i)
-                    {
-                        t = MutateTransducer(t);
-                        MutateTransition(t);
-                    }
+                    t = MutateTransducer(t);
+                    MutateTransition(t);
+                    MutateByDeletion(t);
                     // reevaluate it
                     var f = Experiment.Run(t);
                     t.EvaluationInfo.Fitness = f;
@@ -558,6 +655,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 // force out explicit fitness sharing and clear the species
                 foreach (var species in _species)
                 {
+                    species.CheckStagnation();
                     species.AdjustFitness();
                     species.SelectNewRepresentative();
                     species.Clear();
@@ -565,6 +663,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
                 // replace population
                 var amountToSurvive = Convert.ToInt32(_population.Count * _generalParameters.ReplacementProportion);
+                if (amountToSurvive + newGeneration.Count > _generalParameters.MaxPopulationSize)
+                {
+                    amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;
+                }
                 var survivors = _population.Select(x => x).Skip(_population.Count - amountToSurvive);
                 newGeneration.AddRange(survivors);
                 _population = newGeneration;

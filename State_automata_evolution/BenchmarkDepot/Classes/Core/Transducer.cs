@@ -25,6 +25,11 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         private TransducerState _currentState;
 
+        /// <summary>
+        /// Startig state
+        /// </summary>
+        private TransducerState _startState;
+
         #endregion 
 
         #region Properties
@@ -73,6 +78,10 @@ namespace BenchmarkDepot.Classes.Core
             {
                 other._currentState = other._states.Where(state => state.ID == _currentState.ID).First();
             }
+            if (_startState != null)
+            {
+                other._startState = other._states.Where(state => state.ID == _startState.ID).First();
+            }
             other.EvaluationInfo = new EvaluationInfo();
             return other;
         }
@@ -88,9 +97,9 @@ namespace BenchmarkDepot.Classes.Core
         public int CompareTo(object obj)
         {
             var other = (Transducer) obj;
-            if (other.EvaluationInfo.AdjustedFitness != EvaluationInfo.AdjustedFitness)
+            if (other.EvaluationInfo.Fitness != EvaluationInfo.Fitness)
             {
-                return this.EvaluationInfo.AdjustedFitness.CompareTo(other.EvaluationInfo.AdjustedFitness);
+                return this.EvaluationInfo.Fitness.CompareTo(other.EvaluationInfo.Fitness);
             }
             return other.EvaluationInfo.Age.CompareTo(this.EvaluationInfo.Age);
         }
@@ -110,7 +119,11 @@ namespace BenchmarkDepot.Classes.Core
             if (exists != null) return exists;
 
             _states.Add(state);
-            if (_states.Count == 1) _currentState = state;
+            if (_states.Count == 1)
+            {
+                _startState = state;
+                _currentState = state;
+            }
             return state;
         }
 
@@ -118,12 +131,15 @@ namespace BenchmarkDepot.Classes.Core
         /// Performs state shifting from the currently active state based on the triggering event
         /// </summary>
         /// <param name="trigger">Action/event that invokes the shifting</param>
-        public void ShiftState(string trigger)
+        /// <returns>whether the state shifting could be realized</returns>
+        public bool ShiftState(TransitionTrigger trigger)
         {
             var tuple = _currentState.ShiftState(trigger);
-            if (tuple == null) return;
+            if (tuple == null) return false;
+
             _currentState = _states.Where(item => item.ID == tuple.Item1).First();
             Translation += tuple.Item2;
+            return true;
         }
 
         /// <summary>
@@ -131,16 +147,41 @@ namespace BenchmarkDepot.Classes.Core
         /// If any of the states doesn't exist in the transducer, it will be added.
         /// If a transition with the same action exists between these states, it will be overwritten
         /// </summary>
-        public void AddTransition(TransducerState from, TransducerState to, string action, TransducerTransition transition)
+        public void AddTransition(TransducerState from, TransducerState to, TransitionTrigger action, TransducerTransition transition)
         {
             // id control with 'AddState' - so two states with same Id but different reference won't be added
-            to = AddState(to);
-            from = AddState(from);
+            var a = AddState(from);
+            var b = AddState(to);
+            
+            transition.StateFrom = a.ID;
+            transition.StateTo = b.ID;
+            transition.TransitionTrigger = action;
+            from.AddTransition(action, transition, b.ID);
+        }
 
-            transition.StateFrom = from.ID;
-            transition.StateTo = to.ID;
-            transition.TransitionEvent = action;
-            from.AddTransition(action, transition, to.ID);
+        /// <summary>
+        /// Sets back the transducer to the starting state
+        /// </summary>
+        public void Reset()
+        {
+            Translation = "";
+            _currentState = _startState;
+        }
+
+        /// <summary>
+        /// Removes a state with given index
+        /// </summary>
+        public void RemoveStateAt(int index)
+        {
+            if (index < 1 || index >= _states.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            if (_currentState == _states[index])
+            {
+                _currentState = null;
+            }
+            _states.RemoveAt(index);
         }
 
         /// <summary>
@@ -151,6 +192,10 @@ namespace BenchmarkDepot.Classes.Core
             string result = "";
             foreach (var state in _states)
             {
+                if (state == _startState)
+                {
+                    result += "*";
+                }
                 result += state.ToString();
             }
             return result;

@@ -72,6 +72,7 @@
     <Compile Include="Classes\Core\EAlgotihms\Parameters\NEATParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Species.cs" />
     <Compile Include="Classes\Core\Experiments\Exp.cs" />
+    <Compile Include="Classes\Core\TransitionTrigger.cs" />
     <Compile Include="Classes\Misc\DelegateCommand.cs" />
     <Compile Include="Classes\GUI\ViewModel\BaseViewModel.cs" />
     <Compile Include="Classes\GUI\ViewModel\BenchmarkDepotViewModel.cs" />
