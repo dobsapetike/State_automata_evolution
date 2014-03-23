@@ -96,8 +96,8 @@ namespace BenchmarkDepot.Classes.Misc
         /// </summary>
         public bool Contains(T value)
         {
-            var index = BinarySearchIndex(value);
-            return _elements[index].Equals(value);
+            if (Count == 0) return false;
+            return _elements.Contains(value);
         }
 
         /// <summary>
@@ -106,8 +106,8 @@ namespace BenchmarkDepot.Classes.Misc
         /// <returns>Index of the element - if no such element exists returns -1</returns>
         public int IndexOf(T value)
         {
-            var index = BinarySearchIndex(value);
-            return _elements[index].Equals(value) ? index : -1;
+            if (Count == 0) return -1;
+            return _elements.IndexOf(value);
         }
 
         /// <summary>
@@ -143,12 +143,8 @@ namespace BenchmarkDepot.Classes.Misc
         /// <returns>Whether the element could be removed</returns>
         public bool Remove(T value)
         {
-            if (IsReadOnly) return false;
-
-            var index = BinarySearchIndex(value);
-            if (!_elements[index].Equals(value)) return false;
-            RemoveAt(index);
-            return true;
+            if (IsReadOnly || Count == 0) return false;
+            return _elements.Remove(value);
         }
 
         /// <summary>
@@ -157,6 +153,10 @@ namespace BenchmarkDepot.Classes.Misc
         public void RemoveAt(int index)
         {
             if (IsReadOnly) return;
+            if (index >= Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
             _elements.RemoveAt(index);
         }
 
@@ -215,6 +215,10 @@ namespace BenchmarkDepot.Classes.Misc
         /// <param name="index">Starts at this index</param>
         public void CopyTo(T[] array, int index)
         {
+            if (index >= Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
             _elements.CopyTo(array, index);
         }
 

@@ -22,14 +22,14 @@ namespace BenchmarkDepot.Classes.Core
         /// Key: the action which invokes state shifting as a string
         /// Value: the id of the state activated by executig this action and the transition that leads there
         /// </summary>
-        private Dictionary<TransitionTrigger, Tuple<TransducerTransition, int>> _transitions;
+        private Dictionary<string, Tuple<TransducerTransition, int>> _transitions;
 
         #region Constructor
 
         public TransducerState(int id)
         {
             ID = id;
-            _transitions = new Dictionary<TransitionTrigger, Tuple<TransducerTransition, int>>();
+            _transitions = new Dictionary<string, Tuple<TransducerTransition, int>>();
         }
 
         #endregion
@@ -39,7 +39,7 @@ namespace BenchmarkDepot.Classes.Core
         public object Clone()
         {
             var other = (TransducerState)this.MemberwiseClone();
-            other._transitions = new Dictionary<TransitionTrigger, Tuple<TransducerTransition, int>>();
+            other._transitions = new Dictionary<string, Tuple<TransducerTransition, int>>();
             foreach (var transition in _transitions)
             {
                 other._transitions.Add(transition.Key, new Tuple<TransducerTransition, int>
@@ -50,22 +50,34 @@ namespace BenchmarkDepot.Classes.Core
 
         #endregion
 
-        public void AddTransition(TransitionTrigger trigger, TransducerTransition transition, int destinationId)
+        /// <summary>
+        /// Inserts a new transition starting from this state.
+        /// If a transition with the given trigger already exists, will be replaced
+        /// </summary>
+        public void AddTransition(string trigger, TransducerTransition transition, int destinationId)
         {
            _transitions[trigger] = new Tuple<TransducerTransition, int>(transition, destinationId);
         }
 
-        public bool RemoveTransition(TransitionTrigger trigger)
+        /// <summary>
+        /// Removes transition with the given trigger
+        /// </summary>
+        /// <returns>true if transition was found and removed - otherwise false</returns>
+        public bool RemoveTransition(string trigger)
         {
             return _transitions.Remove(trigger);
         }
 
+        /// <summary>
+        /// Removes the first found transition that leads to a state with the given id
+        /// </summary>
+        /// <returns>true if trigger was found and removed - otherwise false</returns>
         public bool RemoveTransition(int Id)
         {
             var action = GetTransitionEvent(Id);
-            if (action == null) return false;
+            if (action == String.Empty) return false;
 
-            return RemoveTransition(action.Value);
+            return RemoveTransition(action);
         }
 
         /// <summary>
@@ -76,20 +88,31 @@ namespace BenchmarkDepot.Classes.Core
             _transitions.Clear();
         }
 
+        /// <summary>
+        /// Gets the first found transition thats leads to a state with the given id number
+        /// </summary>
+        /// <returns>a transition if found - otherwise null</returns>
         public TransducerTransition GetTransition(int stateID)
         {
             var transition = _transitions.Where(item => item.Value.Item2 == stateID).FirstOrDefault();
-            return transition.Equals(default(KeyValuePair<TransitionTrigger, Tuple<TransducerTransition, int>>))
+            return transition.Equals(default(KeyValuePair<string, Tuple<TransducerTransition, int>>))
                 ? null : transition.Value.Item1;
         }
 
-        private TransitionTrigger? GetTransitionEvent(int stateID)
+        /// <summary>
+        /// Gets the trigger of the first found transition thats leads to a state with the given id number
+        /// </summary>
+        /// <returns>transition trigger if found - otherwise empty string</returns>
+        private string GetTransitionEvent(int stateID)
         {
             var transition = _transitions.Where(item => item.Value.Item2 == stateID).FirstOrDefault();
-            return transition.Equals(default(KeyValuePair<TransitionTrigger, Tuple<TransducerTransition, int>>))
-                ? (TransitionTrigger?)null : transition.Key;
+            return transition.Equals(default(KeyValuePair<string, Tuple<TransducerTransition, int>>))
+                ? String.Empty : transition.Key;
         }
 
+        /// <summary>
+        /// Returns of list of all transitions starting from this state
+        /// </summary>
         public List<TransducerTransition> GetListOfTransitions()
         {
             var result = new List<TransducerTransition>();
@@ -101,7 +124,7 @@ namespace BenchmarkDepot.Classes.Core
         /// Gets the id of the state where the transition - triggered by the given event - leads
         /// </summary>
         /// <returns>State id if such trigger exists, else -1</returns>
-        public int GetDestinationIdByTrigger(TransitionTrigger trigger)
+        public int GetDestinationIdByTrigger(string trigger)
         {
             if (!_transitions.ContainsKey(trigger)) return -1;
             return _transitions[trigger].Item2;
@@ -112,24 +135,34 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         /// <param name="action">The action that invokes the switching</param>
         /// <returns>Tuple of the id of state activated by the switching and the generated output. 
-        /// Returns null if shifting couldn't be realised</returns>
-        public Tuple<int, string> ShiftState(TransitionTrigger trigger)
+        /// Returns null if shifting couldn't be realised - i.e. no such trigger exists or trigger 
+        /// condition is not met</returns>
+        public Tuple<int, string> ShiftState(TransitionTrigger trigger, double param = -1d)
         {
-            if (!_transitions.ContainsKey(trigger)) return null;
+            if (!_transitions.ContainsKey(trigger.TransitionEvent)) return null;
 
-            var shift = _transitions[trigger];
+            var shift = _transitions[trigger.TransitionEvent];
+            if (trigger.IsConditional)
+            {
+                if (!shift.Item1.TransitionTrigger.EvaluateCondition(param)) return null;
+            }
+
             var s = shift.Item1.DoAction();
             return new Tuple<int, string>(shift.Item2, s);
         }
 
+        /// <summary>
+        /// Converts the transitions state into it's string representation.
+        /// </summary>
         public override string ToString()
         {
             string result = "";
-            foreach (var state in _transitions)
+            foreach (var transition in _transitions)
             {
-                result += String.Format("{0,-15} -> {1,-15} -> ", ID, state.Key.TransitionEvent.SetStringToLenght(15));
-                result += String.Format("{0,-15} // ", state.Value.Item2);
-                result += String.Format("{0,-15}({1})\n", state.Value.Item1.Translation.SetStringToLenght(15), state.Value.Item1.InnovationNumber);
+                result += String.Format("{0,-15} A:{1,-15}-> ", ID, transition.Key.SetStringToLenght(15));
+                result += String.Format("{0,-15} // ", transition.Value.Item2);
+                result += String.Format("{0,-15}({1})\n", transition.Value.Item1.Translation.SetStringToLenght(15),
+                    transition.Value.Item1.InnovationNumber);
             }
             return result;
         }

@@ -13,6 +13,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         const int DefaultInitialPopulationSize = 30;
         const int DefaultMaxPopulationSize = 750;
+        const int DefaultMaxIndividualSize = 10; 
         const int DefaultGenerationThreshold = 1500;
 
         const double DefaultSelectionProportion = 0.25;
@@ -31,6 +32,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         private int _initialPopulationSize;
         private int _maxPopulationSize;
+        private int _maxIndividualSize;
         private int _generationThreshold;
 
         private double _selectionProportion;
@@ -64,6 +66,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         {
             get { return _maxPopulationSize; }
             set { _maxPopulationSize = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the maximum number of state in a transducer
+        /// </summary>
+        public int MaxIndividualSize
+        {
+            get { return _maxIndividualSize; }
+            set { _maxIndividualSize = value; }
         }
 
         /// <summary>
@@ -162,6 +173,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         {
             InitialPopulationSize = DefaultInitialPopulationSize;
             MaxPopulationSize = DefaultMaxPopulationSize;
+            MaxIndividualSize = DefaultMaxIndividualSize;
             GenerationThreshold = DefaultGenerationThreshold;
 
             SelectionProportion = DefaultSelectionProportion;

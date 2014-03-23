@@ -11,7 +11,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Defaults
 
-        const int DefaultMaxSpecieCount = 50;
+        const int DefaultRelativeMaxSpecieCount = 50;
         const int DefaultSpeciesAllowedStagnatedGenerationCount = 3;
         const double DefaultCompatibilityThreshold = 3.0;
         const double DefaultMinCompatibilityThreshold = 0.5;
@@ -26,11 +26,13 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         const double DefaultSurvivalRate = 0.5;
 
+        const bool DefaultInnovationResetPerGeneration = true;
+
         #endregion
 
         #region Private fields
 
-        private int _maxSpeciesCount;
+        private int _maxRelativeSpeciesCount;
         private int _allowedSpeciesStagnatedGenerationCount;
         private double _compatibilityThreshold;
         private double _minCompatibilityThreshold;
@@ -45,17 +47,21 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         private double _survivalRate;
 
+        private bool _innovationResetPerGeneration;
+
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Gets and sets the maximum number of species
+        /// Gets and sets the relative maximum number of species.
+        /// Note, that it doesn't garantee that specie count won't be higher at a given point of the
+        /// computation - but the algorithm will try to keep their size below this value
         /// </summary>
-        public int MaxSpecieCount
+        public int MaxRelativeSpecieCount
         {
-            get { return _maxSpeciesCount; }
-            set { _maxSpeciesCount = value; }
+            get { return _maxRelativeSpeciesCount; }
+            set { _maxRelativeSpeciesCount = value; }
         }
 
         /// <summary>
@@ -170,6 +176,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             set { _survivalRate = value; }
         }
 
+        /// <summary>
+        /// Gets and sets whether the list of every occurred innovations should reset
+        /// at the end of each generation
+        /// </summary>
+        public bool InnovationResetPerGeneration
+        {
+            get { return _innovationResetPerGeneration; }
+            set { _innovationResetPerGeneration = value; }
+        }
+
         #endregion
 
         #region Constuctor
@@ -179,7 +195,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         /// </summary>
         public NEATParameters()
         {
-            _maxSpeciesCount = DefaultMaxSpecieCount;
+            _maxRelativeSpeciesCount = DefaultRelativeMaxSpecieCount;
             _allowedSpeciesStagnatedGenerationCount = DefaultSpeciesAllowedStagnatedGenerationCount;
             _compatibilityThreshold = DefaultCompatibilityThreshold;
             _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
@@ -193,6 +209,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             _addTransitionMutationProbability = DefaultAddTransitionMutationProbability;
 
             _survivalRate = DefaultSurvivalRate;
+
+            _innovationResetPerGeneration = DefaultInnovationResetPerGeneration;
         }
 
         #endregion

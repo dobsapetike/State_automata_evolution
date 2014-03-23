@@ -183,7 +183,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <returns>whether the insertion was successful</returns>
         public bool InsertNew(Transducer t)
         {
-            if (_population.Count == _neatParams.MaxSpecieCount) return false; 
+            if (_population.Count == _neatParams.MaxRelativeSpecieCount) return false; 
 
             var compatible = IsCompatible(t);
             if (compatible)
@@ -212,7 +212,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         public void CheckStagnation()
         {
             if (_population.Count <= 1) StagnatedGenerations = _neatParams.AllowedSpeciesStagnatedGenerationCount + 1;
-            if (_population.Count < Convert.ToInt32(_neatParams.MaxSpecieCount * 0.2))
+            if (_population.Count < Convert.ToInt32(_neatParams.MaxRelativeSpecieCount * 0.2))
             {
                 ++StagnatedGenerations;
             }

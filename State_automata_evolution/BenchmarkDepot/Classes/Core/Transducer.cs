@@ -132,9 +132,9 @@ namespace BenchmarkDepot.Classes.Core
         /// </summary>
         /// <param name="trigger">Action/event that invokes the shifting</param>
         /// <returns>whether the state shifting could be realized</returns>
-        public bool ShiftState(TransitionTrigger trigger)
+        public bool ShiftState(TransitionTrigger trigger, double param = -1d)
         {
-            var tuple = _currentState.ShiftState(trigger);
+            var tuple = _currentState.ShiftState(trigger, param);
             if (tuple == null) return false;
 
             _currentState = _states.Where(item => item.ID == tuple.Item1).First();
@@ -147,7 +147,7 @@ namespace BenchmarkDepot.Classes.Core
         /// If any of the states doesn't exist in the transducer, it will be added.
         /// If a transition with the same action exists between these states, it will be overwritten
         /// </summary>
-        public void AddTransition(TransducerState from, TransducerState to, TransitionTrigger action, TransducerTransition transition)
+        public void AddTransition(TransducerState from, TransducerState to, TransitionTrigger trigger, TransducerTransition transition)
         {
             // id control with 'AddState' - so two states with same Id but different reference won't be added
             var a = AddState(from);
@@ -155,8 +155,8 @@ namespace BenchmarkDepot.Classes.Core
             
             transition.StateFrom = a.ID;
             transition.StateTo = b.ID;
-            transition.TransitionTrigger = action;
-            from.AddTransition(action, transition, b.ID);
+            transition.TransitionTrigger = trigger;
+            from.AddTransition(trigger.TransitionEvent, transition, b.ID);
         }
 
         /// <summary>

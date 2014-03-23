@@ -50,7 +50,7 @@ namespace BenchmarkDepot.Classes.Core
             set;
         }
 
-        private double _parameter = -1d;
+        private double _parameter;
         /// <summary>
         /// Gets and sets the condition parameter.
         /// Returns 0 if trigger is not conditional
@@ -66,7 +66,7 @@ namespace BenchmarkDepot.Classes.Core
             }
         }
 
-        private double _minParamValue = 0d;
+        private double _minParamValue;
         /// <summary>
         /// Gets and sets the min value of the conditional parameter
         /// </summary>
@@ -81,7 +81,7 @@ namespace BenchmarkDepot.Classes.Core
             }
         }
 
-        private double _maxParamValue = 100d;
+        private double _maxParamValue;
         /// <summary>
         /// Gets and sets the max value of the conditional parameter
         /// </summary>
@@ -104,6 +104,10 @@ namespace BenchmarkDepot.Classes.Core
         {
             TransitionEvent = tEvent;
             IsConditional = isCond;
+
+            MinParameterValue = 0d;
+            MaxParameterValue = 100d;
+            Parameter = 0d;
         }
 
         #endregion
