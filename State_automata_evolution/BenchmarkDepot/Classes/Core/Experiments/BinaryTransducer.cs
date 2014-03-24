@@ -6,12 +6,18 @@ using System.Collections.Generic;
 
 namespace BenchmarkDepot.Classes.Core.Experiments
 {
-    public class Exp : IExperiment
+
+    public class BinaryTransducerExperiment : IExperiment
     {
-        //test
         private Random r;
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Name 
+        {
+            get { return "Binary transducer"; }
+        }
+        public string Description 
+        {
+            get { return "Simple experiment!"; } 
+        }
         public IEnumerable<TransitionTrigger> TransitionEvents { get; set; }
         public IEnumerable<Action> TransitionActions { get; set; }
         public IEnumerable<string> TransitionTranslations { get; set; }
@@ -20,8 +26,8 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         {
             transducer.Reset();
             
-            const string s = "010111001011100";
-            const string ss = "101000110100011";
+            const string s = "01011100101110011111000000";
+            const string ss = "10100011010001100000111111";
             foreach (var c in s)
             {
                 
@@ -38,11 +44,9 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             return (double)score / (double)ss.Length;
         }
 
-        public Exp(string name, string description)
+        public BinaryTransducerExperiment()
         {
             r = new Random();
-            Name = name;
-            Description = description;
 
             TransitionActions = new List<Action> { null };
             TransitionTranslations = new List<string> { "0", "1" };

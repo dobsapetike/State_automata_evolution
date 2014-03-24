@@ -67,14 +67,16 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Classes\Core\EAlgotihms\Evol.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Innovation.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithm.cs" />
     <Compile Include="Classes\Core\EAlgotihms\EvaluationInfo.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmNonMating.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmNonSpeciated.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\GeneralEAParameters.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmInitialRandom.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\NEATParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Species.cs" />
-    <Compile Include="Classes\Core\Experiments\Exp.cs" />
+    <Compile Include="Classes\Core\Experiments\BinaryTransducer.cs" />
     <Compile Include="Classes\Core\TransitionTrigger.cs" />
     <Compile Include="Classes\Misc\DelegateCommand.cs" />
     <Compile Include="Classes\GUI\ViewModel\BaseViewModel.cs" />

@@ -156,11 +156,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
             _generalParameters = new GeneralEAParameters();
             _generalParameters.MutationProportion = 0d;
-            _generalParameters.MaxIndividualSize = 3;
+            _generalParameters.MaxIndividualSize = 15;
             _generalParameters.TransitionTriggerMutationProbability = 0.95;
             _generalParameters.TransitionActionMutationProbability = 0.88;
-            _generalParameters.TransitionDeletionMutationProbability = 0.3;
-            _generalParameters.StateDeletionMutationProbability = 0.45;
+            _generalParameters.TransitionDeletionMutationProbability = 0.0;
+            _generalParameters.StateDeletionMutationProbability = 0.0;
             _generalParameters.SelectionProportion = 0.65;
 
             random = new Random();
@@ -175,7 +175,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// Creates a random transition with given innovation number
         /// </summary>
-        private TransducerTransition CreateRandomTransition(int innovation)
+        protected TransducerTransition CreateRandomTransition(int innovation)
         {
             return new TransducerTransition(
                 Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count())),
@@ -187,7 +187,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// Creates a random transtion trigger - if possible with random conditional
         /// </summary>
-        private TransitionTrigger CreateRandomTrigger()
+        protected TransitionTrigger CreateRandomTrigger()
         {
             var trigger = Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count()));
             if (trigger.IsConditional)
@@ -200,6 +200,25 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             return trigger;
         }
 
+        /// <summary>
+        /// Resets collections and fields
+        /// </summary>
+        protected void Reset()
+        {
+            _innovations.Clear();
+            foreach (var species in _species)
+            {
+                species.Clear();
+            }
+            _species.Clear();
+            _population.Clear();
+
+            _generation = 0;
+            _speciesIndex = 0;
+            _stateIndex = 0;
+            _globalInnovationNumber = 0;
+        }
+
         #endregion
 
         #region Innovation control
@@ -209,7 +228,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         /// <returns>if the innovation exists it's number is returned, otherwise a global counter is 
         /// incremented and returned</returns>
-        private int DetectInnovationNumberForConnection(int firstId, int secondId)
+        protected int DetectInnovationNumberForConnection(int firstId, int secondId)
         {
             foreach (var innovation in _innovations)
             {
@@ -227,7 +246,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         /// <returns>a tuple of integers is returned in this order: innovation number of the connection 
         /// between the first and the new one, innovation number between the new and the second and the id of the new state</returns>
-        private Tuple<int, int, int> DetectInnovationNumberForNodeMutation(int firstId, int secondId)
+        protected Tuple<int, int, int> DetectInnovationNumberForNodeMutation(int firstId, int secondId)
         {
             var firstCandidates = new Dictionary<int, int>();
             var secondCandidates = new Dictionary<int, int>();
@@ -509,7 +528,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         protected virtual void InitializePopulation()
         {
             // Starting out minimally - ???? only two states wit a random transition ????
-            // TODO refactor this
             for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
             {
                 var t = new Transducer();
@@ -517,14 +535,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 var s2 = new TransducerState(2);
                 t.AddState(s1);
                 t.AddState(s2);
-                var trans = CreateRandomTransition(1);
-                t.AddTransition(s1, s2,
-                    CreateRandomTrigger(), trans);
+                var trans = CreateRandomTransition(DetectInnovationNumberForConnection(s1.ID, s2.ID));
+                t.AddTransition(s1, s2, CreateRandomTrigger(), trans);
                 _population.Add(t);
             }
 
             _stateIndex = 2;
-            _globalInnovationNumber++;
         }
 
         #endregion
@@ -539,6 +555,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // create a new thread for the evolutionary cycle so the gui stays responsive
 
             Logger.CurrentLogger.LogEvolutionStart(this.Name, Experiment.Name);
+            Reset();
 
             InitializePopulation();
             // evaluate the initial population

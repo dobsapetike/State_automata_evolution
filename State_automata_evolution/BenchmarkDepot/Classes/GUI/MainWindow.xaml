@@ -22,15 +22,17 @@
         </Grid.ColumnDefinitions>
         
         <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="White" Margin="5 10 5 10" 
-                 Text="{Binding CurrentExperiment.Description}" IsReadOnly="True" />
+                 Text="{Binding CurrentExperiment.Description, Mode=OneWay}" IsReadOnly="True" />
+        
         
         <StackPanel Grid.Row="0" Grid.Column="2" Margin="5 10 5 10" Orientation="Vertical">
             
             <TextBlock Text="Evolutionary algorithms:" Margin="2"/>
 
-            <ComboBox Margin="5 0 5 5" ItemsSource="{Binding Algorithms}" SelectedItem="{Binding CurrentAlgorithm}"/>
-            
-            <Button Margin="5" Content="Evolve"/>
+            <ComboBox Margin="5 0 5 5" ItemsSource="{Binding Algorithms}" SelectedItem="{Binding CurrentAlgorithm}" 
+                      DisplayMemberPath="Name"/>
+
+            <Button Margin="5" Content="Evolve" Command="{Binding EvolveCommand}"/>
 
             <Button Margin="5" Content="Load transducer"/>
             
@@ -42,7 +44,7 @@
                 Content="Shift Left" Command="{Binding ShiftLeftCommand}"/>
 
         <TextBlock Grid.Row="1" Grid.Column="1" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Text="{Binding CurrentExperiment.Name}" FontSize="13" FontWeight="Bold" FontFamily="Consolas" TextWrapping="Wrap"/>
+                   Text="{Binding CurrentExperiment.Name, Mode=OneWay}" FontSize="13" FontWeight="Bold" FontFamily="Consolas" TextWrapping="Wrap"/>
 
         <Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" 
                 Content="Shift Right" Command="{Binding ShiftRightCommand}"/>

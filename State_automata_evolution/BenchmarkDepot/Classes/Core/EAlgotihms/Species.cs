@@ -174,7 +174,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
-            return compDistance <= _neatParams.CompatibilityThreshold;
+            var f = compDistance <= _neatParams.CompatibilityThreshold;
+            return f;
         }
 
         /// <summary>
@@ -183,8 +184,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <returns>whether the insertion was successful</returns>
         public bool InsertNew(Transducer t)
         {
-            if (_population.Count == _neatParams.MaxRelativeSpecieCount) return false; 
-
             var compatible = IsCompatible(t);
             if (compatible)
             {

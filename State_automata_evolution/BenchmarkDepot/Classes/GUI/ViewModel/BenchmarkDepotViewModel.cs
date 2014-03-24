@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
@@ -17,7 +18,7 @@ namespace BenchmarkDepot.Classes.ViewModel
 
         #region Private fields
 
-        private byte _currentPosition = 0;
+        private short _currentPosition = 0;
 
         #endregion
 
@@ -67,35 +68,44 @@ namespace BenchmarkDepot.Classes.ViewModel
 
         public BenchmarkDepotViewModel()
         {
-            var e = new Evol("evolution");
-            CurrentAlgorithm = e;
             Algorithms = new ObservableCollection<IEvolutionaryAlgorithm>
                 {
-                    new Evol("petike"),
-                    new Evol("another"),
-                    e
+                    new NEATAlgorithm(),
+                    new NEATAlgorithmInitialRandom(),
+                    new NEATAlgorithmNonMating(),
+                    new NEATAlgorithmNonSpeciated(),
                 };
-            var exp = new Exp("exp", "this is a very accurate description");
-            CurrentExperiment = exp;
+            CurrentAlgorithm = Algorithms[0];
+
             Experiments = new ObservableCollection<IExperiment>
             {
-                exp,
-                new Exp("dalsi", "hahaha"),
-                new Exp("experiment", "experiment description"),
-                new Exp("haha", "hihi")
+                new BinaryTransducerExperiment(),
             };
-
-            NEATAlgorithm n = new NEATAlgorithm();
-            var ee = new Exp("test", "test");
-            n.Experiment = ee;
-
-            var res = n.Evolve();
-            System.Windows.MessageBox.Show(res.ToString());
+            CurrentExperiment = Experiments[0];
         }
 
         #endregion
 
         #region Commands
+
+        #region Evolve command
+
+        private DelegateCommand _evolveCommand;
+
+        public ICommand EvolveCommand
+        {
+            get { return _evolveCommand ?? (_evolveCommand =
+                new DelegateCommand(OnEvolveCommand, _ => true)); }
+        }
+
+        private void OnEvolveCommand(object value)
+        {
+            CurrentAlgorithm.Experiment = CurrentExperiment;
+            var res = CurrentAlgorithm.Evolve();
+            System.Windows.MessageBox.Show(res.ToString());
+        }
+
+        #endregion
 
         #region Shift Left Command
 
