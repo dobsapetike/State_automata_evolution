@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Misc = BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Misc;
+using BenchmarkDepot.Classes.Core.Experiments;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
-using BenchmarkDepot.Classes.Core.Interfaces;
+using BenchmarkDepot.Classes.Core.EAlgotihms.Accessories;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms
 {
@@ -13,7 +14,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
     /// Full NEAT algorithm with all of it's features - also a base class for the other
     /// evolutionary algorithms, which are basically the same with some ablations
     /// </summary>
-    public class NEATAlgorithm : IEvolutionaryAlgorithm
+    public class NEATAlgorithm : ObservableObject
     {
 
         #region Private/protected fields
@@ -39,6 +40,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// Counter for innovation id
         /// </summary>
         protected int _globalInnovationNumber = 0;
+
+        /// <summary>
+        /// Flag indicating whether the evolution is in process
+        /// </summary>
+        protected bool _isRunning;
 
         #endregion
 
@@ -107,6 +113,73 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Population count
+
+        /// <summary>
+        /// Gets the number of individuals
+        /// </summary>
+        public int PopulationCount
+        {
+            get { return _population.Count; }
+        }
+
+        #endregion
+
+        #region Specie count
+
+        /// <summary>
+        /// Gets the number of species
+        /// </summary>
+        public int SpecieCount
+        {
+            get { return _species.Count; }
+        }
+
+        #endregion
+
+        #region BestFitness
+
+        /// <summary>
+        /// Gets the fitness of the best individual
+        /// </summary>
+        public double BestFitness
+        {
+            get { return _bestFitness; }
+            private set
+            {
+                _bestFitness = value;
+                RaisePropertyChanged(() => BestFitness);
+            }
+        }
+
+        private double _bestFitness;
+
+        #endregion
+
+        #region State id
+
+        /// <summary>
+        /// Gets the current state id index
+        /// </summary>
+        public int StateIdCount
+        {
+            get { return _stateIndex; }
+        }
+
+        #endregion
+
+        #region Innovation count
+
+        /// <summary>
+        /// Gets the current innovation index
+        /// </summary>
+        public int InnovationCount
+        {
+            get { return _globalInnovationNumber; }
+        }
+
+        #endregion
+
         #region NEAT Parameters
 
         /// <summary>
@@ -133,6 +206,39 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Evolution result
+
+        public Transducer EvolutionResult
+        {
+            get { return _evolResult; }
+            private set
+            {
+                _evolResult = value;
+                RaisePropertyChanged(() => EvolutionResult);
+            }
+        }
+
+        private Transducer _evolResult;
+
+        #endregion
+
+        #endregion
+
+        #region Alert event
+
+        public delegate void AlertEventHandler(object sender, AlertEventArgs args);
+
+        /// <summary>
+        /// Raised every time the algorithm sends an alert message
+        /// </summary>
+        public event AlertEventHandler AlertEvent;
+
+        protected virtual void RaiseAlertEvent(string alert)
+        {
+            if (AlertEvent == null) return;
+            AlertEvent(this, new AlertEventArgs(alert));
+        }
+
         #endregion
 
         #region Constructor
@@ -148,19 +254,20 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
             _neatParameters = new NEATParameters();
             _neatParameters.SurvivalRate = 0.5;
-            _neatParameters.CompatibilityThreshold = 10;
+            _neatParameters.CompatibilityThreshold = 2d;
+            _neatParameters.CompatibilityThresholdDelta = 0.1;
             _neatParameters.MaxRelativeSpecieCount = 35;
             _neatParameters.AddNodeMutationProbability = 0.2;
             _neatParameters.AddTransitionMutationProbability = 0.85;
             _neatParameters.InnovationResetPerGeneration = true;
 
             _generalParameters = new GeneralEAParameters();
-            _generalParameters.MutationProportion = 0d;
             _generalParameters.MaxIndividualSize = 15;
+            _generalParameters.InitialPopulationSize = _generalParameters.MaxPopulationSize;
             _generalParameters.TransitionTriggerMutationProbability = 0.95;
             _generalParameters.TransitionActionMutationProbability = 0.88;
-            _generalParameters.TransitionDeletionMutationProbability = 0.0;
-            _generalParameters.StateDeletionMutationProbability = 0.0;
+            _generalParameters.TransitionDeletionMutationProbability = 0d;
+            _generalParameters.StateDeletionMutationProbability = 0d;
             _generalParameters.SelectionProportion = 0.65;
 
             random = new Random();
@@ -545,17 +652,31 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Stat notification
+
+        /// <summary>
+        /// Notifies observers that stats have been updated
+        /// </summary>
+        private void StatNotification()
+        {
+            RaisePropertyChanged(() => Generation);
+            RaisePropertyChanged(() => PopulationCount);
+            RaisePropertyChanged(() => SpecieCount);
+            RaisePropertyChanged(() => StateIdCount);
+            RaisePropertyChanged(() => InnovationCount);
+        }
+
         #endregion
 
-        #region Public methods
+        #region Evolutionary Cycle
 
-        public Transducer Evolve()
+        private void PerformEvolution()
         {
-            // TODO
-            // create a new thread for the evolutionary cycle so the gui stays responsive
-
+            RaiseAlertEvent("Evolution started!");
             Logger.CurrentLogger.LogEvolutionStart(this.Name, Experiment.Name);
+
             Reset();
+            _isRunning = true;
 
             InitializePopulation();
             // evaluate the initial population
@@ -568,6 +689,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // evolutionary cycle
             for (;;)
             {
+                if (_isRunning == false)
+                {
+                    // someone requested to abort the process
+                    RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, process aborted");
+                    EvolutionResult = null;
+                    return;
+                }
+
                 ++_generation;
 
                 Logger.CurrentLogger.LogStat("Generation  ", _generation, "\r\n");
@@ -575,19 +704,24 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 Logger.CurrentLogger.LogStat("Specie count", _species.Count);
 
                 // check if there is a sufficient solution
-                var bestOne = _population.Last();
+                var bestOne = _population.MaxBy(x => x.EvaluationInfo.Fitness);
+                BestFitness = bestOne.EvaluationInfo.Fitness;
                 Logger.CurrentLogger.LogStat("Best fitness", bestOne.EvaluationInfo.Fitness);
                 if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
                 {
+                    RaiseAlertEvent("Evolution ended!\nStatus: successful, solution found\nResult:\n" + bestOne.ToString());
                     Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), true);
-                    return bestOne;
+                    EvolutionResult = bestOne;
+                    return;
                 }
 
                 if (_generation == _generalParameters.GenerationThreshold)
                 {
                     // no more generations allowed, return the most fit transducer
                     Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), false);
-                    return _population.Last();
+                    RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, generation threshold reached");
+                    EvolutionResult = bestOne;
+                    return;
                 }
 
                 // tell each species it's a new generation, purge stagnating species
@@ -612,16 +746,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 // adjust compatibility threashold based on the number of species
                 if (_neatParameters.MaxRelativeSpecieCount > 1) // otherwise this feature is turned off 
                 {
-                    const double delta = 0.5;
-                    if (_species.Count < _neatParameters.MaxRelativeSpecieCount * 0.1)
+                    if (_species.Count < _neatParameters.MaxRelativeSpecieCount * 0.2)
                     {
                         // more species needed, try higher threshold
-                        _neatParameters.CompatibilityThreshold += delta;
+                        _neatParameters.CompatibilityThreshold -= _neatParameters.CompatibilityThresholdDelta;
                     }
                     else if (_species.Count > _neatParameters.MaxRelativeSpecieCount)
                     {
                         // too many species, lower the threshold
-                        _neatParameters.CompatibilityThreshold -= delta;
+                        _neatParameters.CompatibilityThreshold += _neatParameters.CompatibilityThresholdDelta;
                     }
                 }
                 Logger.CurrentLogger.LogStat("Species threshold", _neatParameters.CompatibilityThreshold);
@@ -638,7 +771,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         Transducer babyTransducer;
 
                         var c = species.GetCandidateForMultiplication();
-                        if (species.Population.Count > 1 && random.NextDouble() > 0.4)
+                        if (species.Population.Count > 1 && random.NextDouble() <= _generalParameters.CrossoverProbability)
                         {
                             // crossover
                             var cc = species.GetCandidateForMultiplication();
@@ -648,7 +781,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                                 if (c != cc) break;
                                 cc = species.GetCandidateForMultiplication();
                             }
-                            
+
                             if (c == cc) continue;
                             babyTransducer = CrossTransducers(c, cc);
                         }
@@ -662,7 +795,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         babyTransducer = MutateTransducer(babyTransducer);
                         MutateTransition(babyTransducer);
                         MutateByDeletion(babyTransducer);
-                        
+
                         // evaluate the newcomer
                         var fitness = Experiment.Run(babyTransducer);
                         babyTransducer.EvaluationInfo.Fitness = fitness;
@@ -671,20 +804,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     }
                 }
                 Logger.CurrentLogger.LogStat("Newbies created", newGeneration.Count);
-
-                // perform mutation among the veterans - totally redundant in full neat
-                var amount = Convert.ToInt32(_population.Count * _generalParameters.MutationProportion);
-                while (amount-- > 0)
-                {
-                    var t = _population.ElementAt(random.Next(_population.Count));
-                    var newOne = MutateTransducer(t);
-                    MutateTransition(newOne);
-                    MutateByDeletion(newOne);
-                    // reevaluate it
-                    var f = Experiment.Run(newOne);
-                    newOne.EvaluationInfo.Fitness = f;
-                    newGeneration.Add(newOne);
-                }
 
                 // force out explicit fitness sharing and clear the species
                 foreach (var species in _species)
@@ -713,6 +832,35 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 {
                     _innovations.Clear();
                 }
+
+                // update observer stats
+                StatNotification();
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Starts the evolutionary cycle on a dedicated thread
+        /// </summary>
+        public void Evolve(Action<IAsyncResult> callBack)
+        {
+            var evol = new Action(PerformEvolution);
+            evol.BeginInvoke(new AsyncCallback(callBack), null);
+        }
+
+        /// <summary>
+        /// Stops the evolutionary cycle after the actual iteration is fully executed.
+        /// </summary>
+        public void RequestStopEvolution()
+        {
+            if (_isRunning)
+            {
+                _isRunning = false;
             }
         }
 

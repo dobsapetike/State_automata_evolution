@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using BenchmarkDepot.Classes.Extensions;
+using BenchmarkDepot.Classes.Misc;
 
 namespace BenchmarkDepot.Classes.Core
 {

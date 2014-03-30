@@ -1,4 +1,5 @@
 ﻿using System;
+using BenchmarkDepot.Classes.Misc;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 {
@@ -6,15 +7,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
     /// <summary>
     /// Parameters specific to NEAT evolution
     /// </summary>
-    public class NEATParameters
+    public class NEATParameters : ObservableObject
     {
 
         #region Defaults
 
+        const bool DefaultSpeciesAllowed = true;
         const int DefaultRelativeMaxSpecieCount = 50;
         const int DefaultSpeciesAllowedStagnatedGenerationCount = 3;
         const double DefaultCompatibilityThreshold = 3.0;
         const double DefaultMinCompatibilityThreshold = 0.5;
+        const double DefaultCompatibilityThresholdDelta = 0.2;
 
         const double DefaultCoefExcessGeneFactor = 1.0;
         const double DefaultCoefDisjointGeneFactor = 1.0;
@@ -32,10 +35,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         #region Private fields
 
+        private bool _speciesAllowed;
         private int _maxRelativeSpeciesCount;
         private int _allowedSpeciesStagnatedGenerationCount;
         private double _compatibilityThreshold;
         private double _minCompatibilityThreshold;
+        private double _compatibilityThresholdDelta;
 
         private double _coefExcessGeneFactor;
         private double _coefDisjointGeneFactor;
@@ -52,6 +57,21 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// Gets and sets whether speciation is allowed
+        /// </summary>
+        public bool SpeciesAllowed
+        {
+            get { return _speciesAllowed; }
+            set
+            {
+                MinCompatibilityThreshold = value 
+                    ? DefaultMinCompatibilityThreshold 
+                    : Double.PositiveInfinity; // this ensures each individuals gets into the same species
+                _speciesAllowed = value;
+            }
+        }
 
         /// <summary>
         /// Gets and sets the relative maximum number of species.
@@ -87,7 +107,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                     _compatibilityThreshold = _minCompatibilityThreshold;
                     return;
                 }
-                _compatibilityThreshold = value; 
+                _compatibilityThreshold = value;
+                RaisePropertyChanged(() => CompatibilityThreshold);
             }
         }
 
@@ -105,6 +126,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                     _compatibilityThreshold = value;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets and sets the threshold delta.
+        /// The algorithm dynamically changes the compatibility threshold based on the number 
+        /// of species. This delta sets by how much per change.
+        /// </summary>
+        public double CompatibilityThresholdDelta
+        {
+            get { return _compatibilityThresholdDelta; }
+            set { _compatibilityThresholdDelta = value; }
         }
 
         /// <summary>
@@ -154,7 +186,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double AddNodeMutationProbability
         {
             get { return _addNodeMutationProbability; }
-            set { _addNodeMutationProbability = value; }
+            set { _addNodeMutationProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -163,7 +195,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double AddTransitionMutationProbability
         {
             get { return _addTransitionMutationProbability; }
-            set { _addTransitionMutationProbability = value; }
+            set { _addTransitionMutationProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -173,7 +205,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double SurvivalRate
         {
             get { return _survivalRate; }
-            set { _survivalRate = value; }
+            set { _survivalRate = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -195,10 +227,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         /// </summary>
         public NEATParameters()
         {
+            _speciesAllowed = DefaultSpeciesAllowed;
             _maxRelativeSpeciesCount = DefaultRelativeMaxSpecieCount;
             _allowedSpeciesStagnatedGenerationCount = DefaultSpeciesAllowedStagnatedGenerationCount;
             _compatibilityThreshold = DefaultCompatibilityThreshold;
             _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
+            _compatibilityThresholdDelta = DefaultCompatibilityThresholdDelta;
 
             _coefExcessGeneFactor = DefaultCoefExcessGeneFactor;
             _coefDisjointGeneFactor = DefaultCoefDisjointGeneFactor;

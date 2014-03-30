@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using Misc = BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
 
-namespace BenchmarkDepot.Classes.Core.EAlgotihms
+namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
 {
 
     /// <summary>
@@ -138,15 +138,18 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 return result;
             };
 
+            if (!_neatParams.SpeciesAllowed) return true; // because this is the only species
+                
             var innovationsRep = GetInnovations(_representative);
             var innovationsNew = GetInnovations(t);
 
-            if (innovationsRep.Count == 0 || innovationsNew.Count == 0) return false;
+            if (innovationsRep.Count == 0 || innovationsNew.Count == 0) 
+                return false;
 
             int N = Math.Max(innovationsRep.Count, innovationsNew.Count);
             int maxInnovation = Math.Max(innovationsRep.Last().Key, innovationsNew.Last().Key);
 
-            double weightDifference = 0.0;
+            double weightDifference = 0d;
             int excessCount = 0, disjointCount = 0;
             for (int i = 0; i < maxInnovation; ++i)
             {
@@ -174,8 +177,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
-            var f = compDistance <= _neatParams.CompatibilityThreshold;
-            return f;
+            return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
         /// <summary>
@@ -265,7 +267,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             foreach (var individ in _population)
             {
                 var fitness = individ.EvaluationInfo.Fitness;
-                individ.EvaluationInfo.AdjustedFitness = fitness / populationSize;
+                individ.EvaluationInfo.AdjustedFitness = fitness / (double)populationSize;
             }
         }
 

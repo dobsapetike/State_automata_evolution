@@ -1,8 +1,11 @@
 ﻿using System;
 
-namespace BenchmarkDepot.Classes.Extensions
+namespace BenchmarkDepot.Classes.Misc
 {
 
+    /// <summary>
+    /// Extension methods for string operations
+    /// </summary>
     public static class StringExtensions
     {
 

@@ -19,6 +19,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             }
         }
 
+        public NEATAlgorithmInitialRandom() : base()
+        {
+            _generalParameters.StateDeletionMutationProbability = 0.6;
+            _generalParameters.TransitionDeletionMutationProbability = 0.6;
+        }
+
         protected override void InitializePopulation()
         {
             var rand = new Random();

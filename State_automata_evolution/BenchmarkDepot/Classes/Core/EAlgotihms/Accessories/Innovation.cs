@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BenchmarkDepot.Classes.Core.EAlgotihms
+namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
 {
 
     /// <summary>

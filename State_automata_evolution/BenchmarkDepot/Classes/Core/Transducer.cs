@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using BenchmarkDepot.Classes.Core.EAlgotihms;
+using BenchmarkDepot.Classes.Core.EAlgotihms.Accessories;
 
 namespace BenchmarkDepot.Classes.Core
 {
@@ -91,7 +92,7 @@ namespace BenchmarkDepot.Classes.Core
         #region Comparer
 
         /// <summary>
-        /// Comparison for sorting by fitness value
+        /// Comparison for sorting by adjusted fitness value
         /// In case of fitness equality compares by age
         /// </summary>
         public int CompareTo(object obj)

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using BenchmarkDepot.Classes.Core;
 
-namespace BenchmarkDepot.Classes.Core.Interfaces
+namespace BenchmarkDepot.Classes.Core.Experiments
 {
 
     /// <summary>

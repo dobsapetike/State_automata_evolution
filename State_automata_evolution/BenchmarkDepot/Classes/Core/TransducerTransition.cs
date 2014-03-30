@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections;
-using BenchmarkDepot.Classes.Core.Interfaces;
 
 namespace BenchmarkDepot.Classes.Core
 {

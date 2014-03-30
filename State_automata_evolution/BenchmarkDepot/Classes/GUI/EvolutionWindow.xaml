@@ -1,0 +1,107 @@
+﻿<Window x:Class="BenchmarkDepot.Classes.GUI.EvolutionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:BenchmarkDepot.Classes.GUI.ViewModel"
+        xmlns:misc="clr-namespace:BenchmarkDepot.Classes.Misc"
+        Title="Evolution" Height="280" MinHeight="280" Width="500" MinWidth="500" Background="White">
+    
+    <Window.Resources>
+        <misc:BoolToVisibilityConverter x:Key="BoolToVisibiliyConverter"/>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Close" Executed="CloseCommand_Executed"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="Close"/>
+    </Window.InputBindings>
+    
+    <Grid Margin="5">
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" TextDecorations="Underline">
+            <Run Text="{Binding Algorithm.Name, Mode=OneWay}"/>
+            <Run Text="  -  "/>
+            <Run Text="{Binding Experiment.Name, Mode=OneWay}"/>
+        </TextBlock>
+        
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="6*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Image HorizontalAlignment="Left" Source="..\..\Resources\cycle.jpg" Width="16" Height="16" RenderTransformOrigin=".5,.5" Margin="10,0,25,0" 
+                       Visibility="{Binding IsEvolving, Converter={StaticResource BoolToVisibiliyConverter}}">
+                <Image.RenderTransform>
+                    <RotateTransform Angle="0"/>
+                </Image.RenderTransform>
+                <Image.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
+                                                                 By="10" To="360" Duration="00:00:2" RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Image.Triggers>
+            </Image>
+                <Button Content="Set parameters" Visibility="{Binding IsEvolving, Converter={StaticResource BoolToVisibiliyConverter}, ConverterParameter='reverse'}" 
+                        Command="{Binding ShowParamsCommand}" Margin="5" Height="25" Width="90"/>
+                <Button Content="Start evolution" Visibility="{Binding IsEvolving, Converter={StaticResource BoolToVisibiliyConverter}, ConverterParameter='reverse'}"
+                        Command="{Binding EvolutionCommand}" Margin="5" Height="25" Width="90"/>
+                <Button Content="Abort" Visibility="{Binding IsEvolving, Converter={StaticResource BoolToVisibiliyConverter}}"
+                        Command="{Binding AbortEvolutionCommand}" Margin="5" Height="25" Width="90"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1" Height="Auto" VerticalAlignment="Top">
+                <GroupBox Header="Stats">
+                    <Grid>
+                    
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="8*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                    
+                        <StackPanel Grid.Column="0" Orientation="Vertical">
+                            <TextBlock Text="Generation"/>
+                            <TextBlock Text="Population Count"/>
+                            <TextBlock Text="Specie Count"/>
+                            <TextBlock Text="Specie threshold"/>
+                            <TextBlock Text="Best fitness"/>
+                            <TextBlock Text="State id reached"/>
+                            <TextBlock Text="Innovations found"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <TextBlock Text="{Binding Algorithm.Generation}"/>
+                            <TextBlock Text="{Binding Algorithm.PopulationCount}"/>
+                            <TextBlock Text="{Binding Algorithm.SpecieCount}"/>
+                            <TextBlock Text="{Binding Algorithm.NEATParameters.CompatibilityThreshold}"/>
+                            <TextBlock Text="{Binding Algorithm.BestFitness}"/>
+                            <TextBlock Text="{Binding Algorithm.StateIdCount}"/>
+                            <TextBlock Text="{Binding Algorithm.InnovationCount}"/>
+                        </StackPanel>
+                    
+                    </Grid>
+                </GroupBox>
+            </Grid>
+
+            <TextBox Grid.Row="1" Grid.Column="1" BorderBrush="White" Margin="5,10,0,2" IsReadOnly="True" 
+                 Text="{Binding AlertList, Mode=OneWay}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+
+        </Grid>
+
+    </Grid>
+    
+</Window>

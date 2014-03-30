@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace BenchmarkDepot.Classes.Extensions
+namespace BenchmarkDepot.Classes.Misc
 {
 
+    /// <summary>
+    /// Simple command implementation for view models
+    /// </summary>
     class DelegateCommand : ICommand
     {
 

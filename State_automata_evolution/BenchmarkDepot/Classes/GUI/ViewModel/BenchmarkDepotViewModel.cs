@@ -5,15 +5,15 @@ using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using BenchmarkDepot.Classes.Core;
-using BenchmarkDepot.Classes.Core.Interfaces;
-using BenchmarkDepot.Classes.Extensions;
+using BenchmarkDepot.Classes.Misc;
+using BenchmarkDepot.Classes.GUI;
 using BenchmarkDepot.Classes.Core.EAlgotihms;
 using BenchmarkDepot.Classes.Core.Experiments;
 
-namespace BenchmarkDepot.Classes.ViewModel
+namespace BenchmarkDepot.Classes.GUI.ViewModel
 {
 
-    public class BenchmarkDepotViewModel : BaseViewModel
+    public class BenchmarkDepotViewModel : ObservableObject
     {
 
         #region Private fields
@@ -26,11 +26,11 @@ namespace BenchmarkDepot.Classes.ViewModel
 
         #region Algorithms
 
-        public ObservableCollection<IEvolutionaryAlgorithm> Algorithms { get; private set; }
+        public ObservableCollection<NEATAlgorithm> Algorithms { get; private set; }
 
-        private IEvolutionaryAlgorithm _currentAlgorithm;
+        private NEATAlgorithm _currentAlgorithm;
 
-        public IEvolutionaryAlgorithm CurrentAlgorithm
+        public NEATAlgorithm CurrentAlgorithm
         {
             get { return _currentAlgorithm; }
             set
@@ -62,18 +62,17 @@ namespace BenchmarkDepot.Classes.ViewModel
 
         #endregion
 
+
         #endregion
 
         #region Constructor
 
         public BenchmarkDepotViewModel()
         {
-            Algorithms = new ObservableCollection<IEvolutionaryAlgorithm>
+            Algorithms = new ObservableCollection<NEATAlgorithm>
                 {
                     new NEATAlgorithm(),
                     new NEATAlgorithmInitialRandom(),
-                    new NEATAlgorithmNonMating(),
-                    new NEATAlgorithmNonSpeciated(),
                 };
             CurrentAlgorithm = Algorithms[0];
 
@@ -101,8 +100,8 @@ namespace BenchmarkDepot.Classes.ViewModel
         private void OnEvolveCommand(object value)
         {
             CurrentAlgorithm.Experiment = CurrentExperiment;
-            var res = CurrentAlgorithm.Evolve();
-            System.Windows.MessageBox.Show(res.ToString());
+            var evolWin = new EvolutionWindow(new EvolutionWindowViewModel(CurrentAlgorithm));
+            evolWin.ShowDialog();
         }
 
         #endregion
@@ -133,14 +132,14 @@ namespace BenchmarkDepot.Classes.ViewModel
 
         #region Shift Right Command
 
-        private BenchmarkDepot.Classes.Extensions.DelegateCommand _shiftRightCommand;
+        private DelegateCommand _shiftRightCommand;
 
         public ICommand ShiftRightCommand
         {
             get
             {
                 return _shiftRightCommand ?? (_shiftRightCommand =
-                    new BenchmarkDepot.Classes.Extensions.DelegateCommand(OnShiftRightCommand, CanShiftRight));
+                    new DelegateCommand(OnShiftRightCommand, CanShiftRight));
             }
         }
 

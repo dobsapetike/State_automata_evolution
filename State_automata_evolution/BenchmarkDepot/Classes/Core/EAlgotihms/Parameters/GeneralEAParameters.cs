@@ -1,4 +1,5 @@
 ﻿using System;
+using BenchmarkDepot.Classes.Misc;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 {
@@ -6,7 +7,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
     /// <summary>
     /// General evolutionary algorithm parameters
     /// </summary>
-    public class GeneralEAParameters
+    public class GeneralEAParameters : ObservableObject
     {
 
         #region Defaults
@@ -56,7 +57,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int InitialPopulationSize
         {
             get { return _initialPopulationSize; }
-            set { _initialPopulationSize = value; }
+            set 
+            { 
+                _initialPopulationSize = value > MaxPopulationSize ? MaxPopulationSize : value;
+            }
         }
 
         /// <summary>
@@ -84,7 +88,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int GenerationThreshold
         {
             get { return _generationThreshold; }
-            set { _generationThreshold = value; }
+            set 
+            { _generationThreshold = value; }
         }
 
         /// <summary>
@@ -94,17 +99,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double SelectionProportion
         {
             get { return _selectionProportion; }
-            set { _selectionProportion = value; }
-        }
-
-        /// <summary>
-        /// Gets and sets the mutation proportion - what percent of population
-        /// is going to mutate in one generation
-        /// </summary>
-        public double MutationProportion
-        {
-            get { return _mutationProportion; }
-            set { _mutationProportion = value; }
+            set 
+            { 
+                _selectionProportion = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => SelectionProportion);
+            }
         }
 
         /// <summary>
@@ -114,16 +113,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double ReplacementProportion
         {
             get { return _replacementProportion; }
-            set { _replacementProportion = value; }
+            set { _replacementProportion = value > 1d ? 1d : value; }
         }
 
         /// <summary>
-        /// Gets and sets the probability of crossover between two individuals
+        /// Gets and sets the probability, that a new individual will be
+        /// created via crossover
         /// </summary>
         public double CrossoverProbability
         {
             get { return _crossoverProbability; }
-            set { _crossoverProbability = value; }
+            set { _crossoverProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double StateDeletionMutationProbability
         {
             get { return _stateDeletionMutationProbability; }
-            set { _stateDeletionMutationProbability = value; }
+            set { _stateDeletionMutationProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionDeletionMutationProbability
         {
             get { return _transitionDeletionMutationProbability; }
-            set { _transitionDeletionMutationProbability = value; }
+            set { _transitionDeletionMutationProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionActionMutationProbability
         {
             get { return _transitionActionMutationProbability; }
-            set { _transitionActionMutationProbability = value; }
+            set { _transitionActionMutationProbability = value > 1d ? 1d : value; ; }
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionTriggerMutationProbability
         {
             get { return _transitionTriggerMutationProbability; }
-            set { _transitionTriggerMutationProbability = value; }
+            set { _transitionTriggerMutationProbability = value > 1d ? 1d : value; ; }
         }
         
         #endregion
@@ -177,7 +177,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             GenerationThreshold = DefaultGenerationThreshold;
 
             SelectionProportion = DefaultSelectionProportion;
-            MutationProportion = DefaultMutationProportion;
             ReplacementProportion = DefaultReplacementProportion;
 
             CrossoverProbability = DefaultCrossoverProbability;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using BenchmarkDepot.Classes.Core;
-using BenchmarkDepot.Classes.Core.Interfaces;
 using System.Collections.Generic;
 
 namespace BenchmarkDepot.Classes.Core.Experiments
