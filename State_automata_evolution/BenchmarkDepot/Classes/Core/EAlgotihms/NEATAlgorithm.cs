@@ -224,6 +224,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Event
+
         #region Alert event
 
         public delegate void AlertEventHandler(object sender, AlertEventArgs args);
@@ -241,6 +243,25 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Generation end evet
+
+        public delegate void GenerationEndHandler(object sender, GenerationEndArgs args);
+
+        /// <summary>
+        /// Raised at the end of each generation
+        /// </summary>
+        public event GenerationEndHandler GenerationEndEvent;
+
+        protected virtual void RaiseGenerationEndEvent()
+        {
+            if (GenerationEndEvent == null) return;
+            GenerationEndEvent(this, new GenerationEndArgs(_generation, _bestFitness));
+        }
+
+        #endregion
+
+        #endregion
+
         #region Constructor
 
         /// <summary>
@@ -254,15 +275,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
             _neatParameters = new NEATParameters();
             _neatParameters.SurvivalRate = 0.5;
-            _neatParameters.CompatibilityThreshold = 2d;
-            _neatParameters.CompatibilityThresholdDelta = 0.1;
+            _neatParameters.CompatibilityThreshold = 3d;
+            _neatParameters.CompatibilityThresholdDelta = 0.5;
             _neatParameters.MaxRelativeSpecieCount = 35;
             _neatParameters.AddNodeMutationProbability = 0.2;
             _neatParameters.AddTransitionMutationProbability = 0.85;
-            _neatParameters.InnovationResetPerGeneration = true;
+            _neatParameters.InnovationResetPerGeneration = false;
 
             _generalParameters = new GeneralEAParameters();
-            _generalParameters.MaxIndividualSize = 15;
+            _generalParameters.MaxIndividualSize = 10;
             _generalParameters.InitialPopulationSize = _generalParameters.MaxPopulationSize;
             _generalParameters.TransitionTriggerMutationProbability = 0.95;
             _generalParameters.TransitionActionMutationProbability = 0.88;
@@ -299,8 +320,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             var trigger = Experiment.TransitionEvents.ElementAt(random.Next(Experiment.TransitionEvents.Count()));
             if (trigger.IsConditional)
             {
-                trigger.Parameter = random.Next((int)trigger.MinParameterValue, 
-                    (int)trigger.MaxParameterValue) + random.NextDouble();
+                trigger.Parameter1 = random.Next((int)trigger.MinParameterValue, 
+                    (int)trigger.MaxParameterValue);
+                trigger.Parameter2 = random.Next((int)trigger.Parameter1,
+                    (int)trigger.MaxParameterValue);
                 var cond = random.Next(Enum.GetValues(typeof(TriggerConditionOperator)).Length);
                 trigger.ConditionOperator = (TriggerConditionOperator)cond;
             }
@@ -384,6 +407,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     var elem = intersection.ElementAt(0);
                     return new Tuple<int, int, int>(firstCandidates[elem], secondCandidates[elem], elem);
                 default:
+                    Logger.CurrentLogger.LogError("Innovation control error! The same modification occurred more than once.");
                     throw new ApplicationException("The same modification already occurred more than once. This should never happen!");
             }
         }
@@ -401,16 +425,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // 'Add connection' mutation - adds randomly a new transition between two states
             Action<Transducer> AddConnection = (T) =>
             {
+                if (T.States.Count == 0)
+                {
+                    Logger.CurrentLogger.LogWarning("Got a transducer for transition mutation without any states. "
+                        + "Something must have gone wrong!");
+                    return;
+                }
                 var first = random.Next(T.States.Count);
                 var second = random.Next(T.States.Count);
-
-                var attempts = 5;
-                while (attempts-- > 0)
-                {
-                    if (first != second) break;
-                    second = random.Next(T.States.Count);
-                }
-                if (first == second) return;
 
                 var transition = CreateRandomTransition(DetectInnovationNumberForConnection
                     (T.States[first].ID, T.States[second].ID));
@@ -542,8 +564,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // action mutation
             if (random.NextDouble() <= _generalParameters.TransitionActionMutationProbability)
             {
-                var action = Experiment.TransitionActions.ElementAt(random.Next(Experiment.TransitionActions.Count()));
+                var action = Experiment.TransitionActions.
+                    ElementAt(random.Next(Experiment.TransitionActions.Count()));
                 selected.TransitionAction = action;
+            }
+
+            // translation mutation
+            if (random.NextDouble() <= _generalParameters.TransitionTranslationMutationProbability)
+            {
+                var translation = Experiment.TransitionTranslations
+                    .ElementAt(random.Next(Experiment.TransitionTranslations.Count()));
+                selected.Translation = translation;
             }
         }
 
@@ -742,7 +773,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
 
                 // Respeciate the population
+                var ss = new System.Diagnostics.Stopwatch();
+                ss.Start();
                 SpeciatePopulation();
+                ss.Stop();
+                Console.WriteLine(ss.ElapsedMilliseconds);
                 // adjust compatibility threashold based on the number of species
                 if (_neatParameters.MaxRelativeSpecieCount > 1) // otherwise this feature is turned off 
                 {
@@ -815,6 +850,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
 
                 // replace population
+                //var amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;
+                //var amountPerSpecie = _species.Count / 
                 var amountToSurvive = Convert.ToInt32(_population.Count * _generalParameters.ReplacementProportion);
                 if (amountToSurvive + newGeneration.Count > _generalParameters.MaxPopulationSize)
                 {
@@ -835,6 +872,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
                 // update observer stats
                 StatNotification();
+                RaiseGenerationEndEvent();
             }
         }
 

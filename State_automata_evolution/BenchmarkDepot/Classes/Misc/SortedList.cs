@@ -62,7 +62,7 @@ namespace BenchmarkDepot.Classes.Misc
         #region Interface implementation
 
         /// <summary>
-        /// Adds new element into the list
+        /// Adds a new element to the list
         /// </summary>
         public void Add(T value)
         {

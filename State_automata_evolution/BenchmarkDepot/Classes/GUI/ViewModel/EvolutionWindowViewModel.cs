@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.IO;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using BenchmarkDepot.Classes.Core.Experiments;
 using BenchmarkDepot.Classes.Core.EAlgotihms;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Accessories;
@@ -59,6 +63,10 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             }
         }
 
+        /// <summary>
+        /// Collection of generation - best fitness pairs for visualisation
+        /// </summary>
+        public ObservableCollection<KeyValuePair<int, double>> GraphData { get; private set; }
 
         #endregion
 
@@ -68,9 +76,11 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         {
             Algorithm = algorithm;
             Algorithm.AlertEvent += OnAlert;
+            Algorithm.GenerationEndEvent += OnGenerationEnd;
             IsEvolving = false;
 
             _alerts = new List<string>();
+            GraphData = new ObservableCollection<KeyValuePair<int, double>>();
         }
 
         #endregion
@@ -93,7 +103,7 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         {
             if (!IsEvolving) return;
 
-            var res = MessageBox.Show("Evolution in progress. Would you like to abort it?", "Hey, I'm making science!",
+            var res = MessageBox.Show("Evolution in progress. Would you like to abort it?", "Hey, I'm making science here!",
                 MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
             if (res == MessageBoxResult.Yes)
             {
@@ -106,13 +116,26 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         }
 
         /// <summary>
-        /// Called when the algorithm sends new aler.
+        /// Called when the algorithm sends new alert.
         /// Saves the alert message for vizualization in view.
         /// </summary>
         private void OnAlert(object sender, AlertEventArgs args)
         {
             _alerts.Add(args.AlertMessage);
             RaisePropertyChanged(() => AlertList);
+        }
+
+        /// <summary>
+        /// Called at the end of each generation
+        /// </summary>
+        private void OnGenerationEnd(object sender, GenerationEndArgs args)
+        {
+            App.Current.Dispatcher.Invoke((Action)(() =>
+            {
+                var g = args.Generation;
+                var f = args.BestFitness;
+                GraphData.Add(new KeyValuePair<int, double>(g, f));
+            }));
         }
 
         #endregion
@@ -138,12 +161,13 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         private void OnEvolveCommand(object value)
         {
             IsEvolving = true;
+            GraphData.Clear();
             Algorithm.Evolve(OnEvolutionComplete);
         }
 
         #endregion
 
-        #region Paramter show command
+        #region Parameter show command
 
         private DelegateCommand _paramWinShowCommand;
 
@@ -194,6 +218,52 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             RaisePropertyChanged(() => AlertList);
 
             Algorithm.RequestStopEvolution();
+        }
+
+        #endregion
+
+        #region Save image command
+
+        private DelegateCommand _saveImageCommand;
+
+        /// <summary>
+        /// Saves chart pic as png
+        /// </summary>
+        public ICommand SaveImageCommand
+        {
+            get
+            {
+                return _saveImageCommand ?? (_saveImageCommand =
+                    new DelegateCommand(OnSaveImageCommand, _ => true));
+            }
+        }
+
+        private void OnSaveImageCommand(object value)
+        {
+            var visual = value as FrameworkElement;
+            if (visual == null) return;
+
+            int pngWidth = (int)visual.ActualWidth;
+            int pngHeight = (int)visual.ActualHeight;
+            var bitmap = new RenderTargetBitmap(
+                pngWidth, pngHeight,
+                96, 96,
+                PixelFormats.Pbgra32);
+            bitmap.Render(visual);
+            var frame = BitmapFrame.Create(bitmap);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(frame);
+
+            var sfd = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = "EvolutionChart",
+                    DefaultExt = ".png",
+                };
+            if (sfd.ShowDialog() == null) return;
+            using (var stream = File.Create(sfd.FileName))
+            {
+                encoder.Save(stream);
+            }
         }
 
         #endregion

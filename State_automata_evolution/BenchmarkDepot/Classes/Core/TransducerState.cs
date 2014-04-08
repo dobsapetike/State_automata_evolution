@@ -159,7 +159,9 @@ namespace BenchmarkDepot.Classes.Core
             string result = "";
             foreach (var transition in _transitions)
             {
-                result += String.Format("{0,-15} A:{1,-15}-> ", ID, transition.Key.SetStringToLenght(15));
+                result += String.Format("{0,-15} E:{1,-15}[{2},{3},{4}]-> ", ID, transition.Key.SetStringToLenght(15),
+                    transition.Value.Item1.TransitionTrigger.ConditionOperator, transition.Value.Item1.TransitionTrigger.Parameter1,
+                    transition.Value.Item1.TransitionTrigger.Parameter2);
                 result += String.Format("{0,-15} // ", transition.Value.Item2);
                 result += String.Format("{0,-15}({1})\n", transition.Value.Item1.Translation.SetStringToLenght(15),
                     transition.Value.Item1.InnovationNumber);

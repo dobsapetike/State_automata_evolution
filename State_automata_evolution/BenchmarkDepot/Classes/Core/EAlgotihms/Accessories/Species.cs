@@ -68,7 +68,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         }
 
         /// <summary>
-        /// Gets how many new transducers should be created in the new generation
+        /// Gets how many new transducers should be created for the new generation
         /// </summary>
         public int SpawnCount
         {
@@ -167,6 +167,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                     {
                         weightDifference += _neatParams.MatchingWeightDifferenceValue / 2;
                     }
+                    continue;
                 }
 
                 if (isInRep)  excessCount++;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -79,6 +80,10 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             Experiments = new ObservableCollection<IExperiment>
             {
                 new BinaryTransducerExperiment(),
+                new NoZeroLeftBehindExperiment(),
+                new TermostatExperiment(),
+                new DressingRoomExperiment(),
+                new CatchMeIfYouCanExperiment(),
             };
             CurrentExperiment = Experiments[0];
         }
@@ -99,6 +104,7 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
 
         private void OnEvolveCommand(object value)
         {
+            
             CurrentAlgorithm.Experiment = CurrentExperiment;
             var evolWin = new EvolutionWindow(new EvolutionWindowViewModel(CurrentAlgorithm));
             evolWin.ShowDialog();

@@ -79,6 +79,10 @@
                     <TextBox Text="{Binding GeneralParameters.TransitionActionMutationProbability}" DockPanel.Dock="Right"/>
                 </DockPanel>
                 <DockPanel LastChildFill="False">
+                    <TextBlock Text="Transition translation mutation probability" DockPanel.Dock="Left"/>
+                    <TextBox Text="{Binding GeneralParameters.TransitionTranslationMutationProbability}" DockPanel.Dock="Right"/>
+                </DockPanel>
+                <DockPanel LastChildFill="False">
                     <TextBlock Text="Transition trigger mutation probability" DockPanel.Dock="Left"/>
                     <TextBox Text="{Binding GeneralParameters.TransitionTriggerMutationProbability}" DockPanel.Dock="Right"/>
                 </DockPanel>
@@ -140,7 +144,7 @@
                     <TextBox Text="{Binding NEATParameters.SurvivalRate}" DockPanel.Dock="Right"/>
                 </DockPanel>
                 <DockPanel Height="35" LastChildFill="False">
-                    <CheckBox Content="Reset innovation per generation" IsChecked="{Binding NEATParameters.InnovationResetPerGeneration}" VerticalAlignment="Center"/>
+                    <CheckBox Content="Reset innovations at every generation" IsChecked="{Binding NEATParameters.InnovationResetPerGeneration}" VerticalAlignment="Center"/>
                 </DockPanel>
             </StackPanel>
         </StackPanel>

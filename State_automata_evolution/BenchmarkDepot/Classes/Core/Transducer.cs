@@ -135,6 +135,7 @@ namespace BenchmarkDepot.Classes.Core
         /// <returns>whether the state shifting could be realized</returns>
         public bool ShiftState(TransitionTrigger trigger, double param = -1d)
         {
+            if (_currentState == null) return false;
             var tuple = _currentState.ShiftState(trigger, param);
             if (tuple == null) return false;
 

@@ -24,6 +24,7 @@ namespace BenchmarkDepot.Classes.Core
         public string Translation
         {
             get { return _transitionTranslation; }
+            set { _transitionTranslation = value; }
         }
 
         /// <summary>

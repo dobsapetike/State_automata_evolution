@@ -25,6 +25,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const double DefaultStateDeletionMutationProbability = 0.25;
         const double DefaultTransitionDeletionMutationProbability = 0.25;
         const double DefaultTransitionActionMutationProbability = 0.25;
+        const double DefaultTransitionTranslationMutationProbability = 0.45;
         const double DefaultTransitionTriggerMutationProbability = 0.35;
 
         #endregion
@@ -37,13 +38,13 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private int _generationThreshold;
 
         private double _selectionProportion;
-        private double _mutationProportion;
         private double _replacementProportion;
 
         private double _crossoverProbability;
         private double _stateDeletionMutationProbability;
         private double _transitionDeletionMutationProbability;
         private double _transitionActionMutationProbability;
+        private double _transitionTranslationMutationProbability;
         private double _transitionTriggerMutationProbability;
 
         #endregion
@@ -150,7 +151,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionActionMutationProbability
         {
             get { return _transitionActionMutationProbability; }
-            set { _transitionActionMutationProbability = value > 1d ? 1d : value; ; }
+            set { _transitionActionMutationProbability = value > 1d ? 1d : value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the probability of mutation when a random transition translation is modified
+        /// </summary>
+        public double TransitionTranslationMutationProbability
+        {
+            get { return _transitionTranslationMutationProbability; }
+            set { _transitionTranslationMutationProbability = value > 1d ? 1d : value; }
         }
 
         /// <summary>
@@ -183,6 +193,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             StateDeletionMutationProbability = DefaultStateDeletionMutationProbability;
             TransitionDeletionMutationProbability = DefaultTransitionDeletionMutationProbability;
             TransitionActionMutationProbability = DefaultTransitionActionMutationProbability;
+            TransitionTranslationMutationProbability = DefaultTransitionTranslationMutationProbability;
             TransitionTriggerMutationProbability = DefaultTransitionTriggerMutationProbability;
         }
 

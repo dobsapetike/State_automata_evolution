@@ -22,7 +22,7 @@
         </Grid.ColumnDefinitions>
         
         <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="White" Margin="5 10 5 10" 
-                 Text="{Binding CurrentExperiment.Description, Mode=OneWay}" IsReadOnly="True" />
+                 Text="{Binding CurrentExperiment.Description, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
         
         
         <StackPanel Grid.Row="0" Grid.Column="2" Margin="5 10 5 10" Orientation="Vertical">

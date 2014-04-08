@@ -12,6 +12,8 @@ namespace BenchmarkDepot.Classes.Core
         Equals,
         LesserThan,
         GreaterThan,
+        Between,
+        OutsideOf,
     }
 
     /// <summary>
@@ -28,7 +30,7 @@ namespace BenchmarkDepot.Classes.Core
         public string TransitionEvent
         {
             get;
-            set;
+            private set;
         }
         
         /// <summary>
@@ -55,7 +57,7 @@ namespace BenchmarkDepot.Classes.Core
         /// Gets and sets the condition parameter.
         /// Returns 0 if trigger is not conditional
         /// </summary>
-        public double Parameter
+        public double Parameter1
         {
             get { return _parameter; }
             set
@@ -63,6 +65,23 @@ namespace BenchmarkDepot.Classes.Core
                 if (value > _maxParamValue) value = _maxParamValue;
                 if (value < _minParamValue) value = _minParamValue;
                 _parameter = value;
+            }
+        }
+
+        private double _parameter2;
+        /// <summary>
+        /// Gets and sets the second condition parameter - always greater than param1 
+        /// Returns 0 if trigger is not conditional
+        /// </summary>
+        public double Parameter2
+        {
+            get { return _parameter2; }
+            set
+            {
+                if (value > _maxParamValue) value = _maxParamValue;
+                if (value < _minParamValue) value = _minParamValue;
+                if (value < Parameter1) value = Parameter1;
+                _parameter2 = value;
             }
         }
 
@@ -76,7 +95,7 @@ namespace BenchmarkDepot.Classes.Core
             set
             {
                 if (value > _maxParamValue) value = _maxParamValue;
-                if (Parameter < value) Parameter = value;
+                if (Parameter1 < value) Parameter1 = value;
                 _minParamValue = value;
             }
         }
@@ -91,7 +110,7 @@ namespace BenchmarkDepot.Classes.Core
             set
             {
                 if (value < _minParamValue) value = _minParamValue;
-                if (Parameter > value) Parameter = value;
+                if (Parameter1 > value) Parameter1 = value;
                 _maxParamValue = value;
             }
         }
@@ -107,7 +126,7 @@ namespace BenchmarkDepot.Classes.Core
 
             MinParameterValue = 0d;
             MaxParameterValue = 100d;
-            Parameter = 0d;
+            Parameter1 = Parameter2 = 0d;
         }
 
         #endregion
@@ -123,11 +142,15 @@ namespace BenchmarkDepot.Classes.Core
             switch (ConditionOperator)
             {
                 case TriggerConditionOperator.Equals:
-                    return value == Parameter;
+                    return value == Parameter1;
                 case TriggerConditionOperator.LesserThan:
-                    return value < Parameter;
+                    return value < Parameter1;
                 case TriggerConditionOperator.GreaterThan:
-                    return value > Parameter;
+                    return value > Parameter1;
+                case TriggerConditionOperator.Between:
+                    return value >= Parameter1 && value <= Parameter2;
+                case TriggerConditionOperator.OutsideOf:
+                    return value < Parameter1 && value > Parameter2;
             }
             return false;
         }
