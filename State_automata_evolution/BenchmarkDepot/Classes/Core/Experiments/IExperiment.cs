@@ -51,6 +51,13 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         /// <returns>the acquired fitness score</returns>
         double Run(Transducer transducer);
 
+        /// <summary>
+        /// Experiments also define a testing method where the functions of an
+        /// evolved transducer can be tested - e.g. running a simulation or responding
+        /// to user input
+        /// </summary>
+        void TestDrive(Transducer transducer);
+
     }
 
 }

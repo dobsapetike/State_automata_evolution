@@ -93,6 +93,35 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
             return (double)score / (double)(testCases+5);
         }
+
+
+        public void TestDrive(Transducer transducer)
+        {
+            Console.WriteLine("******** Termostat *********");
+            Console.WriteLine(Description);
+            Console.WriteLine("Input: degree as an integer");
+            Console.WriteLine(new String('*', 36) + '\n');
+
+            transducer.Reset();
+            for (;;)
+            {
+                Console.Write("> ");
+                var input = Console.In.ReadLine();
+                if (input.ToLower() == "exit") break;
+
+                double degree;
+                var res = Double.TryParse(input, out degree);
+                if (!res)
+                {
+                    Console.WriteLine("That's not it, I need a number!");
+                    continue;
+                }
+
+                var shift = transducer.ShiftState(TransitionEvents.First(), degree);
+                Console.Out.WriteLine("< " + (shift ? "OK" : "Not OK"));
+            }
+        }
+
     }
 
 }

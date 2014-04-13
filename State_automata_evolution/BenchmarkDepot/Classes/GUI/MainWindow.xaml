@@ -31,8 +31,8 @@
             <ComboBox Margin="5 0 5 5" ItemsSource="{Binding Algorithms}" SelectedItem="{Binding CurrentAlgorithm}" 
                       DisplayMemberPath="Name"/>
             <Button Margin="5" Content="Evolve" Command="{Binding EvolveCommand}"/>
-            <Button Margin="5" Content="Load transducer"/>
-            <Button Margin="5" Content="Run"/>
+            <!--<Button Margin="5" Content="Load transducer"/>
+            <Button Margin="5" Content="Run"/>-->
             
         </StackPanel>
         

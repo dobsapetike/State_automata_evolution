@@ -178,6 +178,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
+            compDistance = compDistance / (double) N;
             return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
@@ -214,7 +215,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         public void CheckStagnation()
         {
             if (_population.Count <= 1) StagnatedGenerations = _neatParams.AllowedSpeciesStagnatedGenerationCount + 1;
-            if (_population.Count < Convert.ToInt32(_neatParams.MaxRelativeSpecieCount * 0.2))
+            if (_population.Count < Convert.ToInt32(_neatParams.CriticalSpecieCount * 0.2))
             {
                 ++StagnatedGenerations;
             }

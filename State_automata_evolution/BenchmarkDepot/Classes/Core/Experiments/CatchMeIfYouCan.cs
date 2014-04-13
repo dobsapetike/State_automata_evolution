@@ -14,7 +14,8 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
         public string Description
         {
-            get { return "Description"; }
+            get { return "Evolves an automat, which controls the movement of a frog in a swamp "
+                + "of size NxN, avoiding the deadly stork, which also roams the swamp."; }
         }
 
         public double RequiredFitness
@@ -124,6 +125,11 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         }
 
         #endregion
+
+        public void TestDrive(Transducer transducer)
+        {
+            throw new NotImplementedException();
+        }
 
     }
 

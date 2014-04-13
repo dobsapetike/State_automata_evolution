@@ -86,6 +86,10 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
                 new CatchMeIfYouCanExperiment(),
             };
             CurrentExperiment = Experiments[0];
+
+            // initialize console window
+            ConsoleManager.AllocConsole();
+            ConsoleManager.HideConsole();
         }
 
         #endregion
@@ -104,7 +108,6 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
 
         private void OnEvolveCommand(object value)
         {
-            
             CurrentAlgorithm.Experiment = CurrentExperiment;
             var evolWin = new EvolutionWindow(new EvolutionWindowViewModel(CurrentAlgorithm));
             evolWin.ShowDialog();

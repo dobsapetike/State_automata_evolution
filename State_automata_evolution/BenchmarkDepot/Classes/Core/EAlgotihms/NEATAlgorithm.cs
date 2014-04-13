@@ -156,6 +156,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #endregion
 
+        #region Evaluation count
+
+        /// <summary>
+        /// Gets the total number of evaluations
+        /// </summary>
+        public long EvaluationCount
+        {
+            get;
+            private set;
+        }
+
+        #endregion
+
         #region State id
 
         /// <summary>
@@ -208,6 +221,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #region Evolution result
 
+        /// <summary>
+        /// TODO
+        /// </summary>
         public Transducer EvolutionResult
         {
             get { return _evolResult; }
@@ -218,7 +234,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             }
         }
 
-        private Transducer _evolResult;
+        private Transducer _evolResult = null;
 
         #endregion
 
@@ -255,7 +271,12 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         protected virtual void RaiseGenerationEndEvent()
         {
             if (GenerationEndEvent == null) return;
-            GenerationEndEvent(this, new GenerationEndArgs(_generation, _bestFitness));
+            GenerationEndEvent(this, new GenerationEndArgs 
+            { 
+                Generation = _generation, 
+                BestFitness = _bestFitness, 
+                EvaliationCount = this.EvaluationCount
+            }); 
         }
 
         #endregion
@@ -277,7 +298,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             _neatParameters.SurvivalRate = 0.5;
             _neatParameters.CompatibilityThreshold = 3d;
             _neatParameters.CompatibilityThresholdDelta = 0.5;
-            _neatParameters.MaxRelativeSpecieCount = 35;
+            _neatParameters.CriticalSpecieCount = 35;
             _neatParameters.AddNodeMutationProbability = 0.2;
             _neatParameters.AddTransitionMutationProbability = 0.85;
             _neatParameters.InnovationResetPerGeneration = false;
@@ -346,6 +367,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             _generation = 0;
             _speciesIndex = 0;
             _stateIndex = 0;
+            EvaluationCount = 0;
             _globalInnovationNumber = 0;
         }
 
@@ -695,6 +717,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             RaisePropertyChanged(() => SpecieCount);
             RaisePropertyChanged(() => StateIdCount);
             RaisePropertyChanged(() => InnovationCount);
+            RaisePropertyChanged(() => EvaluationCount);
         }
 
         #endregion
@@ -715,6 +738,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             {
                 var fitness = Experiment.Run(t);
                 t.EvaluationInfo.Fitness = fitness;
+                EvaluationCount++;
             }
 
             // evolutionary cycle
@@ -742,6 +766,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 {
                     RaiseAlertEvent("Evolution ended!\nStatus: successful, solution found\nResult:\n" + bestOne.ToString());
                     Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), true);
+                    RaiseGenerationEndEvent();
                     EvolutionResult = bestOne;
                     return;
                 }
@@ -751,6 +776,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     // no more generations allowed, return the most fit transducer
                     Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), false);
                     RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, generation threshold reached");
+                    RaiseGenerationEndEvent();
                     EvolutionResult = bestOne;
                     return;
                 }
@@ -773,20 +799,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
 
                 // Respeciate the population
-                var ss = new System.Diagnostics.Stopwatch();
-                ss.Start();
                 SpeciatePopulation();
-                ss.Stop();
-                Console.WriteLine(ss.ElapsedMilliseconds);
                 // adjust compatibility threashold based on the number of species
-                if (_neatParameters.MaxRelativeSpecieCount > 1) // otherwise this feature is turned off 
+                if (_neatParameters.CriticalSpecieCount > 1) // otherwise this feature is turned off 
                 {
-                    if (_species.Count < _neatParameters.MaxRelativeSpecieCount * 0.2)
+                    if (_species.Count < _neatParameters.CriticalSpecieCount * 0.2)
                     {
                         // more species needed, try higher threshold
                         _neatParameters.CompatibilityThreshold -= _neatParameters.CompatibilityThresholdDelta;
                     }
-                    else if (_species.Count > _neatParameters.MaxRelativeSpecieCount)
+                    else if (_species.Count > _neatParameters.CriticalSpecieCount)
                     {
                         // too many species, lower the threshold
                         _neatParameters.CompatibilityThreshold += _neatParameters.CompatibilityThresholdDelta;
@@ -834,6 +856,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         // evaluate the newcomer
                         var fitness = Experiment.Run(babyTransducer);
                         babyTransducer.EvaluationInfo.Fitness = fitness;
+                        EvaluationCount++;
 
                         newGeneration.Add(babyTransducer);
                     }

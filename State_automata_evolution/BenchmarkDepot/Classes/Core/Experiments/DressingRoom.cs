@@ -18,7 +18,8 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
         public string Description
         {
-            get { return "Description"; }
+            get { return "Automat simulates a dressing room - when a new costumer arrives - tells "
+                + "him whether there is free space or not."; }
         }
 
         public double RequiredFitness
@@ -32,10 +33,10 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             {
                 return new List<TransitionTrigger>
                 {
-                    new TransitionTrigger("Boy arrives"),
-                    new TransitionTrigger("Girl arrives"),
-                    new TransitionTrigger("Boy leaves"),
-                    new TransitionTrigger("Girl leaves"),
+                    new TransitionTrigger("boy arrives"),
+                    new TransitionTrigger("girl arrives"),
+                    new TransitionTrigger("boy leaves"),
+                    new TransitionTrigger("girl leaves"),
                 };
             }
         }
@@ -91,6 +92,37 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
             return (double)score / (double)testCase;
         }
+
+        public void TestDrive(Transducer transducer)
+        {
+            Console.WriteLine("******** Dressing room *********");
+            Console.WriteLine(Description);
+            Console.WriteLine("Input: string containing two words with space separator: \"a b\"" +
+                "\n\ta == g v b (girl or boy) "
+                +"\n\tb == a v l (arrives or leaves)");
+            Console.WriteLine(new String('*', 36) + '\n');
+            HashSet<string> firstS = new HashSet<string> { "girl", "boy" },
+                secondS = new HashSet<string> { "arrives", "leaves" };
+
+            transducer.Reset();
+            for (; ; )
+            {
+                Console.Write("> ");
+                var input = Console.In.ReadLine();
+                if (input.ToLower() == "exit") break;
+
+                var s = input.Split();
+                if (s.Length != 2 || !firstS.Contains(s[0]) || !secondS.Contains(s[1]))
+                {
+                    Console.WriteLine("Error, wrong input!");
+                    continue;
+                }
+
+                var shift = transducer.ShiftState(new TransitionTrigger(s[0] + " " + s[1]));
+                Console.Out.WriteLine("< " + (shift ? "OK" : "Not OK"));
+            }
+        }
+
     }
 
 }

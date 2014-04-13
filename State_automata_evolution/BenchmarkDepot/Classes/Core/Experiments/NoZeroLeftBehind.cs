@@ -91,7 +91,7 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             _transducer = transducer;
 
             var score = 0d;
-            var noTests = 500;
+            var noTests = 350;
 
             for (var i = 0; i < noTests; ++i)
             {
@@ -104,6 +104,49 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         {
             get { return 1d; }
         }
+
+        public void TestDrive(Transducer transducer)
+        {
+            Console.WriteLine("******** No Zero Left Behind *********");
+            Console.WriteLine(Description);
+            Console.Write("Input: string containing characters of ");
+            foreach (var c in TransitionTranslations)
+            {
+                Console.Write(c + " ");
+            }
+            Console.WriteLine('\n' + new String('*', 40) + '\n');
+            for (; ; )
+            {
+                Console.Write("> ");
+                var input = Console.In.ReadLine();
+                if (input.ToLower() == "exit") break;
+
+                var modified = false;
+                var inputMod = "";
+                foreach (var c in input)
+                {
+                    if (TransitionTranslations.Contains(c + ""))
+                    {
+                        inputMod += c;
+                        continue;
+                    }
+                    modified = true;
+                }
+                if (modified)
+                {
+                    Console.WriteLine("Sorry, invalid input, I had to change it!");
+                    Console.WriteLine("> " + inputMod);
+                }
+
+                transducer.Reset();
+                foreach (var c in inputMod)
+                {
+                    transducer.ShiftState(TransitionEvents.ElementAt(int.Parse(c.ToString())));
+                }
+                Console.Out.WriteLine("< " + transducer.Translation);
+            }
+        }
+
     }
 }
 

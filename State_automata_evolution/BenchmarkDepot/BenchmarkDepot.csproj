@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{695334E2-36CB-4A53-AB83-AE820F7B957A}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BenchmarkDepot</RootNamespace>
     <AssemblyName>BenchmarkDepot</AssemblyName>
@@ -78,7 +78,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Classes\Core\EAlgotihms\Accessories\AlertEventArgs.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\Accessories\EventArgs.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Accessories\Innovation.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithm.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Accessories\EvaluationInfo.cs" />
@@ -102,6 +102,7 @@
     <Compile Include="Classes\GUI\ViewModel\EvolutionWindowViewModel.cs" />
     <Compile Include="Classes\GUI\ViewModel\ParametersWindowViewModel.cs" />
     <Compile Include="Classes\Misc\BoolToVisibilityConverter.cs" />
+    <Compile Include="Classes\Misc\ConsoleManager.cs" />
     <Compile Include="Classes\Misc\DelegateCommand.cs" />
     <Compile Include="Classes\Misc\ObservableObject.cs" />
     <Compile Include="Classes\GUI\ViewModel\BenchmarkDepotViewModel.cs" />

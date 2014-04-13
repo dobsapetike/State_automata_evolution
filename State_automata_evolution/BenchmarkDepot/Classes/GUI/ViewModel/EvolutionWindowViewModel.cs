@@ -63,10 +63,60 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             }
         }
 
+        #region Graph data
+
         /// <summary>
-        /// Collection of generation - best fitness pairs for visualisation
+        /// Collection of key-best fitness value pairs for visualisation
         /// </summary>
-        public ObservableCollection<KeyValuePair<int, double>> GraphData { get; private set; }
+        public ObservableCollection<KeyValuePair<long, double>> GraphData { get; private set; }
+
+        /// <summary>
+        /// Collection of generation-best fitness pairs
+        /// </summary>
+        private ObservableCollection<KeyValuePair<long, double>> _graphGeneration 
+            = new ObservableCollection<KeyValuePair<long, double>>();
+
+        private bool _graphGenerationShow;
+
+        public bool IsGrapGenerationShow
+        {
+            get { return _graphGenerationShow; }
+            set
+            {
+                _graphGenerationShow = value;
+                if (_graphGenerationShow)
+                {
+                    GraphData = _graphGeneration;
+                    RaisePropertyChanged(() => GraphData);
+                }
+                RaisePropertyChanged(() => IsGrapGenerationShow);
+            }
+        }
+
+        /// <summary>
+        /// Collection of evaluation count-best fitness paris
+        /// </summary>
+        private ObservableCollection<KeyValuePair<long, double>> _graphEvaluation 
+            = new ObservableCollection<KeyValuePair<long,double>>();
+
+        private bool _graphEvaluationShow;
+
+        public bool IsGrapEvaluationShow
+        {
+            get { return _graphEvaluationShow; }
+            set
+            {
+                _graphEvaluationShow = value;
+                if (_graphEvaluationShow)
+                {
+                    GraphData = _graphEvaluation;
+                    RaisePropertyChanged(() => GraphData);
+                }
+                RaisePropertyChanged(() => IsGrapEvaluationShow);
+            }
+        }
+
+        #endregion
 
         #endregion
 
@@ -80,7 +130,8 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             IsEvolving = false;
 
             _alerts = new List<string>();
-            GraphData = new ObservableCollection<KeyValuePair<int, double>>();
+            GraphData = new ObservableCollection<KeyValuePair<long, double>>();
+            IsGrapGenerationShow = true;
         }
 
         #endregion
@@ -94,6 +145,8 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         private void OnEvolutionComplete(IAsyncResult asyncResult)
         {
             IsEvolving = false;
+            App.Current.Dispatcher.Invoke(() => 
+                _testDriveCommand.RaiseCanExecuteChanged());
         }
 
         /// <summary>
@@ -134,7 +187,9 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             {
                 var g = args.Generation;
                 var f = args.BestFitness;
-                GraphData.Add(new KeyValuePair<int, double>(g, f));
+                var e = args.EvaliationCount;
+                _graphGeneration.Add(new KeyValuePair<long, double>(g, f));
+                _graphEvaluation.Add(new KeyValuePair<long, double>(e, f));
             }));
         }
 
@@ -218,6 +273,37 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             RaisePropertyChanged(() => AlertList);
 
             Algorithm.RequestStopEvolution();
+        }
+
+        #endregion
+
+        #region Test drive command
+
+        private DelegateCommand _testDriveCommand;
+
+        /// <summary>
+        /// Performs the user controlled test of the transducer
+        /// </summary>
+        public ICommand TestDriveCommand
+        {
+            get
+            {
+                return _testDriveCommand ?? (_testDriveCommand =
+                    new DelegateCommand(OnTestDriveCommand, CanTestDrive));
+            }
+        }
+
+        private bool CanTestDrive(object value)
+        {
+            return Algorithm.EvolutionResult != null;
+        }
+
+        private void OnTestDriveCommand(object value)
+        {
+            Console.Clear();
+            ConsoleManager.ShowConsole();
+            Algorithm.Experiment.TestDrive(Algorithm.EvolutionResult);
+            ConsoleManager.HideConsole();
         }
 
         #endregion

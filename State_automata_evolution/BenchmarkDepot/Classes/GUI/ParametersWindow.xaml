@@ -96,8 +96,8 @@
                     <CheckBox Content="Allow speciation" Name="AllowSpeciesParam" IsChecked="{Binding NEATParameters.SpeciesAllowed}"  VerticalAlignment="Center"/>
                 </DockPanel>
                 <DockPanel Style="{StaticResource SpeciePanel}" LastChildFill="False">
-                    <TextBlock Text="Relative maximum species count" DockPanel.Dock="Left"/>
-                    <TextBox Text="{Binding NEATParameters.MaxRelativeSpecieCount}" DockPanel.Dock="Right"/>
+                    <TextBlock Text="Critical species count" DockPanel.Dock="Left"/>
+                    <TextBox Text="{Binding NEATParameters.CriticalSpecieCount}" DockPanel.Dock="Right"/>
                 </DockPanel>
                 <DockPanel Style="{StaticResource SpeciePanel}" Name="SpecieStagnationParam" LastChildFill="False">
                     <TextBlock Text="Allowed species stagnated generations" DockPanel.Dock="Left"/>

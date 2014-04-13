@@ -18,13 +18,9 @@
     /// </summary>
     public class GenerationEndArgs
     {
-        public int Generation { get; private set; }
-        public double BestFitness { get; private set; }
-        public GenerationEndArgs(int gen, double fit)
-        {
-            Generation = gen;
-            BestFitness = fit;
-        }
+        public int Generation { get; set; }
+        public double BestFitness { get; set; }
+        public long EvaliationCount { get; set; }
     }
 
 }

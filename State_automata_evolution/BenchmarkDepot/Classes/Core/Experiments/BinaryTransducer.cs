@@ -79,5 +79,45 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         {
             get { return 1d; }
         }
+
+
+        public void TestDrive(Transducer transducer)
+        {
+            Console.WriteLine("******** Binary transducer *********");
+            Console.WriteLine(Description);
+            Console.WriteLine("Input: string containing characters of '0' and '1'");
+            Console.WriteLine(new String('*', 36) + '\n');
+            for (;;)
+            {
+                Console.Write("> ");
+                var input = Console.In.ReadLine();
+                if (input.ToLower() == "exit") break;
+
+                var modified = false;
+                var inputMod = "";
+                foreach (var c in input)
+                {
+                    if (TransitionTranslations.Contains(c+""))
+                    {
+                        inputMod += c;
+                        continue;
+                    }
+                    modified = true;
+                }
+                if (modified)
+                {
+                    Console.WriteLine("Sorry, invalid input, I had to change it!");
+                    Console.WriteLine("> " + inputMod);
+                }
+
+                transducer.Reset();
+                foreach (var c in inputMod)
+                {
+                    transducer.ShiftState(TransitionEvents.ElementAt(int.Parse(c.ToString())));
+                }
+                Console.Out.WriteLine("< " + transducer.Translation);
+            }
+        }
+
     }
 }

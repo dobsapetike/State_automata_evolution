@@ -13,7 +13,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Defaults
 
         const bool DefaultSpeciesAllowed = true;
-        const int DefaultRelativeMaxSpecieCount = 50;
+        const int DefaultCriticalSpecieCount = 50;
         const int DefaultSpeciesAllowedStagnatedGenerationCount = 3;
         const double DefaultCompatibilityThreshold = 3.0;
         const double DefaultMinCompatibilityThreshold = 0.5;
@@ -36,7 +36,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         #region Private fields
 
         private bool _speciesAllowed;
-        private int _maxRelativeSpeciesCount;
+        private int _criticalSpeciesCount;
         private int _allowedSpeciesStagnatedGenerationCount;
         private double _compatibilityThreshold;
         private double _minCompatibilityThreshold;
@@ -74,14 +74,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         }
 
         /// <summary>
-        /// Gets and sets the relative maximum number of species.
+        /// Gets and sets the critical number of species.
         /// Note, that it doesn't garantee that specie count won't be higher at a given point of the
         /// computation - but the algorithm will try to keep their size below this value
         /// </summary>
-        public int MaxRelativeSpecieCount
+        public int CriticalSpecieCount
         {
-            get { return _maxRelativeSpeciesCount; }
-            set { _maxRelativeSpeciesCount = value; }
+            get { return _criticalSpeciesCount; }
+            set { _criticalSpeciesCount = value; }
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public NEATParameters()
         {
             _speciesAllowed = DefaultSpeciesAllowed;
-            _maxRelativeSpeciesCount = DefaultRelativeMaxSpecieCount;
+            _criticalSpeciesCount = DefaultCriticalSpecieCount;
             _allowedSpeciesStagnatedGenerationCount = DefaultSpeciesAllowedStagnatedGenerationCount;
             _compatibilityThreshold = DefaultCompatibilityThreshold;
             _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
