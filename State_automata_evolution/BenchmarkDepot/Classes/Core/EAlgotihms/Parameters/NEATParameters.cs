@@ -70,6 +70,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                     ? DefaultMinCompatibilityThreshold 
                     : Double.PositiveInfinity; // this ensures each individuals gets into the same species
                 _speciesAllowed = value;
+                RaisePropertyChanged(() => SpeciesAllowed);
             }
         }
 
@@ -81,7 +82,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int CriticalSpecieCount
         {
             get { return _criticalSpeciesCount; }
-            set { _criticalSpeciesCount = value; }
+            set 
+            { 
+                _criticalSpeciesCount = value;
+                RaisePropertyChanged(() => CriticalSpecieCount);
+            }
         }
 
         /// <summary>
@@ -91,7 +96,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int AllowedSpeciesStagnatedGenerationCount
         {
             get { return _allowedSpeciesStagnatedGenerationCount; }
-            set { _allowedSpeciesStagnatedGenerationCount = value; }
+            set 
+            { 
+                _allowedSpeciesStagnatedGenerationCount = value;
+                RaisePropertyChanged(() => AllowedSpeciesStagnatedGenerationCount);
+            }
         }
 
         /// <summary>
@@ -107,7 +116,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                     _compatibilityThreshold = _minCompatibilityThreshold;
                     return;
                 }
-                _compatibilityThreshold = value;
+                _compatibilityThreshold = value > 1d ? 1d : value;
                 RaisePropertyChanged(() => CompatibilityThreshold);
             }
         }
@@ -125,6 +134,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 {
                     _compatibilityThreshold = value;
                 }
+                RaisePropertyChanged(() => MinCompatibilityThreshold);
             }
         }
 
@@ -136,7 +146,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CompatibilityThresholdDelta
         {
             get { return _compatibilityThresholdDelta; }
-            set { _compatibilityThresholdDelta = value; }
+            set 
+            { 
+                _compatibilityThresholdDelta = value;
+                RaisePropertyChanged(() => CompatibilityThresholdDelta);
+            }
         }
 
         /// <summary>
@@ -146,7 +160,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CoefExcessGeneFactor
         {
             get { return _coefExcessGeneFactor; }
-            set { _coefExcessGeneFactor = value; }
+            set 
+            { 
+                _coefExcessGeneFactor = value;
+                RaisePropertyChanged(() => CoefExcessGeneFactor);
+            }
         }
 
         /// <summary>
@@ -156,7 +174,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CoefDisjointGeneFactor
         {
             get { return _coefDisjointGeneFactor; }
-            set { _coefDisjointGeneFactor = value; }
+            set 
+            {
+                _coefDisjointGeneFactor = value;
+                RaisePropertyChanged(() => CoefDisjointGeneFactor);
+            }
         }
 
         /// <summary>
@@ -166,7 +188,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CoefMatchingWeightDifferenceFactor
         {
             get { return _coefMatchingWeightDifferenceFactor; }
-            set { _coefMatchingWeightDifferenceFactor = value; }
+            set 
+            { 
+                _coefMatchingWeightDifferenceFactor = value;
+                RaisePropertyChanged(() => CoefMatchingWeightDifferenceFactor);
+            }
         }
 
         /// <summary>
@@ -177,7 +203,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double MatchingWeightDifferenceValue
         {
             get { return _matchingWeightDifferenceValue; }
-            set { _matchingWeightDifferenceValue = value; }
+            set 
+            { 
+                _matchingWeightDifferenceValue = value;
+                RaisePropertyChanged(() => MatchingWeightDifferenceValue);
+            }
         }
 
         /// <summary>
@@ -186,7 +216,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double AddNodeMutationProbability
         {
             get { return _addNodeMutationProbability; }
-            set { _addNodeMutationProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _addNodeMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => AddNodeMutationProbability);
+            }
         }
 
         /// <summary>
@@ -195,7 +229,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double AddTransitionMutationProbability
         {
             get { return _addTransitionMutationProbability; }
-            set { _addTransitionMutationProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _addTransitionMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => AddTransitionMutationProbability);
+            }
         }
 
         /// <summary>
@@ -205,7 +243,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double SurvivalRate
         {
             get { return _survivalRate; }
-            set { _survivalRate = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _survivalRate = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => SurvivalRate);
+            }
         }
 
         /// <summary>
@@ -215,7 +257,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public bool InnovationResetPerGeneration
         {
             get { return _innovationResetPerGeneration; }
-            set { _innovationResetPerGeneration = value; }
+            set 
+            { 
+                _innovationResetPerGeneration = value;
+                RaisePropertyChanged(() => InnovationResetPerGeneration);
+            }
         }
 
         #endregion
@@ -245,6 +291,31 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             _survivalRate = DefaultSurvivalRate;
 
             _innovationResetPerGeneration = DefaultInnovationResetPerGeneration;
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Sets variable values from a preset
+        /// </summary>
+        public void LoadFromPreset(Preset preset)
+        {
+            SpeciesAllowed = preset.SpeciesAllowed;
+            CriticalSpecieCount = preset.CriticalSpecieCount;
+            AllowedSpeciesStagnatedGenerationCount = preset.AllowedSpeciesStagnatedGenerationCount;
+            CompatibilityThreshold = preset.CompatibilityThreshold;
+            MinCompatibilityThreshold = preset.MinCompatibilityThreshold;
+            CompatibilityThresholdDelta = preset.CompatibilityThresholdDelta;
+            CoefExcessGeneFactor = preset.CoefExcessGeneFactor;
+            CoefDisjointGeneFactor = preset.CoefExcessGeneFactor;
+            CoefMatchingWeightDifferenceFactor = preset.CoefMatchingWeightDifferenceFactor;
+            MatchingWeightDifferenceValue = preset.MatchingWeightDifferenceValue;
+            AddNodeMutationProbability = preset.AddNodeMutationProbability;
+            AddTransitionMutationProbability = preset.AddTransitionMutationProbability;
+            SurvivalRate = preset.SurvivalRate;
+            InnovationResetPerGeneration = preset.InnovationResetPerGeneration;
         }
 
         #endregion

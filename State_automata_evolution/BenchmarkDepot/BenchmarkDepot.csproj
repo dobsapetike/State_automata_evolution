@@ -82,10 +82,12 @@
     <Compile Include="Classes\Core\EAlgotihms\Accessories\Innovation.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithm.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Accessories\EvaluationInfo.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\Parameters\DefaultNeatPreset.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\GeneralEAParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmInitialRandom.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\NEATParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Accessories\Species.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\Parameters\Preset.cs" />
     <Compile Include="Classes\Core\Experiments\BinaryTransducer.cs" />
     <Compile Include="Classes\Core\Experiments\CatchMeIfYouCan.cs" />
     <Compile Include="Classes\Core\Experiments\DressingRoom.cs" />
@@ -135,7 +137,9 @@
   <ItemGroup>
     <Resource Include="Resources\cycle.jpg" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\redo.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

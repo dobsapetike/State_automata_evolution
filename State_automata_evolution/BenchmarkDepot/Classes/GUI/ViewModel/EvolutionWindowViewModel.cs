@@ -216,7 +216,8 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         private void OnEvolveCommand(object value)
         {
             IsEvolving = true;
-            GraphData.Clear();
+            _graphEvaluation.Clear();
+            _graphGeneration.Clear();
             Algorithm.Evolve(OnEvolutionComplete);
         }
 

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="BenchmarkDepot.Classes.GUI.ParametersWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Parameters" Height="580" MinHeight="580" Width="600" MinWidth="600" Background="White">
+        Title="Parameters" Height="580" MinHeight="580" Width="950" MinWidth="950" Background="White">
     
     <Window.CommandBindings>
         <CommandBinding Command="Close" Executed="CloseCommand_Executed"/>
@@ -30,6 +30,7 @@
     <Grid Margin="5">
         
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -147,6 +148,28 @@
                     <CheckBox Content="Reset innovations at every generation" IsChecked="{Binding NEATParameters.InnovationResetPerGeneration}" VerticalAlignment="Center"/>
                 </DockPanel>
             </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Vertical">
+            <TextBlock Text="Preset control"/>
+            <Separator />
+            <StackPanel Margin="9" Orientation="Horizontal" HorizontalAlignment="Center">
+                <ComboBox Width="150" Margin="0 0 10 0" ItemsSource="{Binding PresetCollection}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding CurrentPreset}"/>
+                <Button Height="25" Width="25" Command="{Binding ApplyPresetCommand}">
+                    <Button.Content>
+                        <Image Source="..\..\Resources\redo.png"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 0">
+                <TextBlock Text="Preset name" DockPanel.Dock="Left" Margin="0 5 10 0"/>
+                <TextBox Name="PresetName" VerticalContentAlignment="Center" Width="120" Margin="0 0 20 0"/>
+                <Button Content="Save preset" Height="25" Width="90" Command="{Binding SavePresetCommand}" 
+                    CommandParameter="{Binding Text, ElementName=PresetName}"/>
+            </StackPanel>
+            <TextBlock Margin="0 40 0 0" Text="Experiment parameters"/>
+            <Separator />
         </StackPanel>
         
     </Grid>

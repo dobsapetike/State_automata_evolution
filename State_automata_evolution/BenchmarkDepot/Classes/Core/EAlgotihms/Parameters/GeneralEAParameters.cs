@@ -61,6 +61,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             set 
             { 
                 _initialPopulationSize = value > MaxPopulationSize ? MaxPopulationSize : value;
+                RaisePropertyChanged(() => InitialPopulationSize);
             }
         }
 
@@ -70,7 +71,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int MaxPopulationSize
         {
             get { return _maxPopulationSize; }
-            set { _maxPopulationSize = value; }
+            set 
+            { 
+                _maxPopulationSize = value;
+                RaisePropertyChanged(() => MaxPopulationSize);
+            }
         }
 
         /// <summary>
@@ -79,7 +84,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int MaxIndividualSize
         {
             get { return _maxIndividualSize; }
-            set { _maxIndividualSize = value; }
+            set 
+            {
+                _maxIndividualSize = value;
+                RaisePropertyChanged(() => MaxIndividualSize);
+            }
         }
 
         /// <summary>
@@ -90,7 +99,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         {
             get { return _generationThreshold; }
             set 
-            { _generationThreshold = value; }
+            { 
+                _generationThreshold = value;
+                RaisePropertyChanged(() => GenerationThreshold);
+            }
         }
 
         /// <summary>
@@ -114,7 +126,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double ReplacementProportion
         {
             get { return _replacementProportion; }
-            set { _replacementProportion = value > 1d ? 1d : value; }
+            set 
+            { 
+                _replacementProportion = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => ReplacementProportion);
+            }
         }
 
         /// <summary>
@@ -124,7 +140,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CrossoverProbability
         {
             get { return _crossoverProbability; }
-            set { _crossoverProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _crossoverProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => CrossoverProbability);
+            }
         }
 
         /// <summary>
@@ -133,7 +153,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double StateDeletionMutationProbability
         {
             get { return _stateDeletionMutationProbability; }
-            set { _stateDeletionMutationProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _stateDeletionMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => StateDeletionMutationProbability);
+            }
         }
 
         /// <summary>
@@ -142,7 +166,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionDeletionMutationProbability
         {
             get { return _transitionDeletionMutationProbability; }
-            set { _transitionDeletionMutationProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _transitionDeletionMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => TransitionDeletionMutationProbability);
+            }
         }
 
         /// <summary>
@@ -151,7 +179,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionActionMutationProbability
         {
             get { return _transitionActionMutationProbability; }
-            set { _transitionActionMutationProbability = value > 1d ? 1d : value; }
+            set 
+            { 
+                _transitionActionMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => TransitionActionMutationProbability);
+            }
         }
 
         /// <summary>
@@ -160,7 +192,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionTranslationMutationProbability
         {
             get { return _transitionTranslationMutationProbability; }
-            set { _transitionTranslationMutationProbability = value > 1d ? 1d : value; }
+            set 
+            { 
+                _transitionTranslationMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => TransitionTranslationMutationProbability);
+            }
         }
 
         /// <summary>
@@ -169,7 +205,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionTriggerMutationProbability
         {
             get { return _transitionTriggerMutationProbability; }
-            set { _transitionTriggerMutationProbability = value > 1d ? 1d : value; ; }
+            set 
+            { 
+                _transitionTriggerMutationProbability = value > 1d ? 1d : value;
+                RaisePropertyChanged(() => TransitionTriggerMutationProbability);
+            }
         }
         
         #endregion
@@ -195,6 +235,29 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             TransitionActionMutationProbability = DefaultTransitionActionMutationProbability;
             TransitionTranslationMutationProbability = DefaultTransitionTranslationMutationProbability;
             TransitionTriggerMutationProbability = DefaultTransitionTriggerMutationProbability;
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Sets variable values from a preset
+        /// </summary>
+        public void LoadFromPreset(Preset preset)
+        {
+            MaxPopulationSize = preset.MaxPopulationSize;
+            InitialPopulationSize = preset.InitialPopulationSize;
+            MaxIndividualSize = preset.MaxIndividualSize;
+            GenerationThreshold = preset.GenerationThreshold;
+            SelectionProportion = preset.SelectionProportion;
+            ReplacementProportion = preset.ReplacementProportion;
+            CrossoverProbability = preset.CrossoverProbability;
+            StateDeletionMutationProbability = preset.StateDeletionMutationProbability;
+            TransitionDeletionMutationProbability = preset.TransitionDeletionMutationProbability;
+            TransitionActionMutationProbability = preset.TransitionActionMutationProbability;
+            TransitionTranslationMutationProbability = preset.TransitionTranslationMutationProbability;
+            TransitionTriggerMutationProbability = preset.TransitionTriggerMutationProbability;
         }
 
         #endregion
