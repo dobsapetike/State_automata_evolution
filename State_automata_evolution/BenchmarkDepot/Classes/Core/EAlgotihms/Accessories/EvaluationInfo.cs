@@ -23,7 +23,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         private double _adjustedFitness;
 
         /// <summary>
-        /// Number of evalutations
+        /// Number of evaluations
         /// </summary>
         private int _evaluationCount;
 
@@ -75,6 +75,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         public bool IsEvaluated
         {
             get { return _evaluationCount != 0; }
+        }
+
+        /// <summary>
+        /// Name of the mutation last used on this transducer
+        /// </summary>
+        public string LastMutation
+        {
+            get;
+            set;
         }
 
         /// <summary>

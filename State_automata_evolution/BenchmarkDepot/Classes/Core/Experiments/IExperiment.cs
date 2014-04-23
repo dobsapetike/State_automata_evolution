@@ -17,6 +17,11 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         string Name { get; }
 
         /// <summary>
+        /// Parameters of the experiment
+        /// </summary>
+        ExperimentProperties Properties { get; }
+
+        /// <summary>
         /// Returns a description of the experiment
         /// </summary>
         string Description { get; }
@@ -57,6 +62,12 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         /// to user input
         /// </summary>
         void TestDrive(Transducer transducer);
+
+        /// <summary>
+        /// Experiment are not met for multiple instantiation, so might be
+        /// needed a reset function for collection cleaning
+        /// </summary>
+        void Reset();
 
     }
 

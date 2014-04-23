@@ -127,6 +127,7 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             Algorithm = algorithm;
             Algorithm.AlertEvent += OnAlert;
             Algorithm.GenerationEndEvent += OnGenerationEnd;
+            Algorithm.Reset();
             IsEvolving = false;
 
             _alerts = new List<string>();
@@ -218,6 +219,7 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             IsEvolving = true;
             _graphEvaluation.Clear();
             _graphGeneration.Clear();
+            Experiment.Reset();
             Algorithm.Evolve(OnEvolutionComplete);
         }
 
@@ -243,7 +245,7 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         {
             var paramWin = new ParametersWindow
             {
-                DataContext = new ParametersWindowViewModel(Algorithm.NEATParameters, Algorithm.GeneralEAParameters)
+                DataContext = new ParametersWindowViewModel(Algorithm)
             };
             paramWin.ShowDialog();
         }

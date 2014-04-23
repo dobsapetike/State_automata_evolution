@@ -1,4 +1,6 @@
 ﻿using BenchmarkDepot.Classes.Misc;
+using BenchmarkDepot.Classes.Core.Experiments;
+using BenchmarkDepot.Classes.Core.EAlgotihms;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
@@ -19,6 +21,11 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         }
 
         public GeneralEAParameters GeneralParameters
+        {
+            get; private set;
+        }
+
+        public ExperimentProperties ExperimentProperties
         {
             get; private set;
         }
@@ -58,10 +65,11 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
 
         #region Constructor
 
-        public ParametersWindowViewModel(NEATParameters np, GeneralEAParameters gp)
+        public ParametersWindowViewModel(NEATAlgorithm neat)
         {
-            NEATParameters = np;
-            GeneralParameters = gp;
+            NEATParameters = neat.NEATParameters;
+            GeneralParameters = neat.GeneralEAParameters;
+            ExperimentProperties = neat.Experiment.Properties;
 
             PresetCollection = new ObservableCollection<Preset> { new DefaultNeatPreset() };
             foreach (var preset in Preset.GetExistingPresetNames())

@@ -8,8 +8,15 @@ namespace BenchmarkDepot.Classes.Core.Experiments
     public class DressingRoomExperiment : IExperiment
     {
 
-        private const int maxHeadCount = 3;
+        private int _maxHeadCount = 2, _testCases = 1000;
         private Random _random = new Random();
+
+        private ExperimentProperties _properties;
+
+        public ExperimentProperties Properties
+        {
+            get { return _properties; }
+        }
 
         public string Name
         {
@@ -51,15 +58,27 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             get { return new List<Action> { null }; }
         }
 
+        public void Reset()
+        {
+            _maxHeadCount = (int)_properties["Head count"];
+            _testCases = (int)_properties["Test cases"];
+        }
+
+        public DressingRoomExperiment()
+        {
+            _properties = new ExperimentProperties();
+            _properties.AddProperty("Test cases", 1000d);
+            _properties.AddProperty("Head count", 2d);
+        }
+
         public double Run(Transducer transducer)
         {
             transducer.Reset();
 
-            const int testCase = 1000;
             int score = 0;
             int boyCount = 0, girlCount = 0;
 
-            for (var i = 0; i < testCase; ++i)
+            for (var i = 0; i < _testCases; ++i)
             {
                 var ok = true;
                 var selected = _random.Next(4);
@@ -70,11 +89,11 @@ namespace BenchmarkDepot.Classes.Core.Experiments
                 {
                     case 0:
                         if (suc) ++boyCount;
-                        if ((boyCount + girlCount > maxHeadCount) || (!suc && boyCount + girlCount + 1 <= maxHeadCount)) ok = false;
+                        if ((boyCount + girlCount > _maxHeadCount) || (!suc && boyCount + girlCount + 1 <= _maxHeadCount)) ok = false;
                         break;
                     case 1:
                         if (suc) ++girlCount;
-                        if ((boyCount + girlCount > maxHeadCount) || (!suc && boyCount + girlCount + 1 <= maxHeadCount)) ok = false;
+                        if ((boyCount + girlCount > _maxHeadCount) || (!suc && boyCount + girlCount + 1 <= _maxHeadCount)) ok = false;
                         break;
                     case 2:
                         if (suc) --boyCount;
@@ -86,11 +105,10 @@ namespace BenchmarkDepot.Classes.Core.Experiments
                         break;
                 }
 
-                if (ok)
-                score++;
+                if (ok) score++;
             }
 
-            return (double)score / (double)testCase;
+            return (double)score / (double)_testCases;
         }
 
         public void TestDrive(Transducer transducer)
@@ -98,14 +116,14 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             Console.WriteLine("******** Dressing room *********");
             Console.WriteLine(Description);
             Console.WriteLine("Input: string containing two words with space separator: \"a b\"" +
-                "\n\ta == g v b (girl or boy) "
-                +"\n\tb == a v l (arrives or leaves)");
+                "\n\ta == girl v boy "
+                +"\n\tb == arrives v leaves");
             Console.WriteLine(new String('*', 36) + '\n');
             HashSet<string> firstS = new HashSet<string> { "girl", "boy" },
                 secondS = new HashSet<string> { "arrives", "leaves" };
 
             transducer.Reset();
-            for (; ; )
+            for (;;)
             {
                 Console.Write("> ");
                 var input = Console.In.ReadLine();

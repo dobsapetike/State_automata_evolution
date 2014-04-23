@@ -71,10 +71,11 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
         public BenchmarkDepotViewModel()
         {
             Algorithms = new ObservableCollection<NEATAlgorithm>
-                {
-                    new NEATAlgorithm(),
-                    new NEATAlgorithmInitialRandom(),
-                };
+            {
+                new NEATAlgorithm(),
+                new NEATAlgorithmInitialRandom(),
+                new NEATAlgorithmCompleteStructure(),
+            };
             CurrentAlgorithm = Algorithms[0];
 
             Experiments = new ObservableCollection<IExperiment>
@@ -90,6 +91,26 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             // initialize console window
             ConsoleManager.AllocConsole();
             ConsoleManager.HideConsole();
+
+            var t = new Transducer();
+            var s1 = new TransducerState(0);
+            var s2 = new TransducerState(1);
+            var s3 = new TransducerState(2);
+
+            t.AddState(s1); t.AddState(s2); t.AddState(s3);
+            t.AddTransition(s1, s2, new TransitionTrigger("boy arrives"), new TransducerTransition(null, "X", 1));
+            t.AddTransition(s1, s2, new TransitionTrigger("girl arrives"), new TransducerTransition(null, "X", 1));
+            t.AddTransition(s2, s3, new TransitionTrigger("boy arrives"), new TransducerTransition(null, "X", 2));
+            t.AddTransition(s2, s3, new TransitionTrigger("girl arrives"), new TransducerTransition(null, "X", 2));
+
+            t.AddTransition(s3, s2, new TransitionTrigger("boy leaves"), new TransducerTransition(null, "X", 3));
+            t.AddTransition(s3, s2, new TransitionTrigger("girl leaves"), new TransducerTransition(null, "X", 3));
+            t.AddTransition(s2, s1, new TransitionTrigger("boy leaves"), new TransducerTransition(null, "X", 4));
+            t.AddTransition(s2, s1, new TransitionTrigger("girl leaves"), new TransducerTransition(null, "X", 4));
+
+            var e = new DressingRoomExperiment();
+            var score = e.Run(t);
+            System.Windows.MessageBox.Show(score.ToString());
         }
 
         #endregion

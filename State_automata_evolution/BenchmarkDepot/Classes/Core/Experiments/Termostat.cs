@@ -10,13 +10,17 @@ namespace BenchmarkDepot.Classes.Core.Experiments
     public class TermostatExperiment : IExperiment
     {
 
-        private const int minDegree = 0;
-        private const int maxDegree = 100;
-        private const int minIdealDegree = 50;
-        private const int maxIdealDegree = 60;
-
         private Random _random = new Random();
         private Transducer _transducer;
+
+        private int minDegree, maxDegree, minIdealDegree, maxIdealDegree;
+
+        private ExperimentProperties _properties;
+
+        public ExperimentProperties Properties
+        {
+            get { return _properties; }
+        }
 
         public string Name
         {
@@ -33,6 +37,14 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         public double RequiredFitness
         {
             get { return 1d; }
+        }
+
+        public void Reset()
+        {
+            minDegree = (int)_properties["Min degree"];
+            maxDegree = (int)_properties["Max degree"];
+            minIdealDegree = (int)_properties["Min ideal degree"];
+            maxIdealDegree = (int)_properties["Max ideal degree"];
         }
 
         public IEnumerable<TransitionTrigger> TransitionEvents
@@ -52,6 +64,15 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         public IEnumerable<Action> TransitionActions
         {
             get { return new List<Action> { null }; }
+        }
+
+        public TermostatExperiment()
+        {
+            _properties = new ExperimentProperties();
+            _properties.AddProperty("Min degree", 0);
+            _properties.AddProperty("Max degree", 100);
+            _properties.AddProperty("Min ideal degree", 50);
+            _properties.AddProperty("Max ideal degree", 60);
         }
 
         private double TestCase(int testVal = -1)

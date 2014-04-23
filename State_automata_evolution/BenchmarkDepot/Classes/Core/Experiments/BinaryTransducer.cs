@@ -12,6 +12,13 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         private Transducer _transducer;
         private Random random = new Random();
 
+        private ExperimentProperties _properties;
+
+        public ExperimentProperties Properties
+        {
+            get { return _properties; }
+        }
+
         public string Name 
         {
             get { return "Binary transducer"; }
@@ -36,6 +43,15 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             TransitionActions = new List<Action> { null };
             TransitionTranslations = new List<string> { "0", "1" };
             TransitionEvents = new List<TransitionTrigger> { new TransitionTrigger("0"), new TransitionTrigger("1") };
+
+            _properties = new ExperimentProperties();
+            _properties.AddProperty("Test cases", 1000);
+            _properties.AddProperty("Test string length", 10);
+        }
+
+        public void Reset()
+        {
+
         }
 
         private double TestCase(string input)
@@ -63,16 +79,15 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
             var score = 0d;
 
-            var noTests = 5;
-            for (var i = 0; i < noTests; ++i)
+            for (var i = 0; i < Properties["Test cases"]; ++i)
             {
                 var testString = "";
-                for (var j = 0; j < 10; ++j)
+                for (var j = 0; j < Properties["Test string length"]; ++j)
                     testString += random.Next(2) == 0 ? "0" : "1";
                 score += TestCase(testString);
             }
 
-            return score / (double)noTests;            
+            return score / Properties["Test cases"];            
         }
 
         public double RequiredFitness

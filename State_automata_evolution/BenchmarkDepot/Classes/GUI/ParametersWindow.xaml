@@ -170,8 +170,17 @@
             </StackPanel>
             <TextBlock Margin="0 40 0 0" Text="Experiment parameters"/>
             <Separator />
+            <ItemsControl ItemsSource="{Binding ExperimentProperties.Properties}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel LastChildFill="False">
+                            <TextBlock Text="{Binding Name, Mode=OneWay}" DockPanel.Dock="Left" Height="25" Margin="0,10,0,0"/>
+                            <TextBox Text="{Binding Value}" DockPanel.Dock="Right" Height="25" Width="50"/>
+                        </DockPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
-        
     </Grid>
     
 </Window>

@@ -72,6 +72,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         private Random random;
 
+        private List<Tuple<string, Action<Transducer>>> _listOfMutations;
+
+        private Dictionary<string, List<double>> _mutationSuccess;
+
         #endregion
 
         #region Properties
@@ -222,7 +226,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         #region Evolution result
 
         /// <summary>
-        /// TODO
+        /// The reulting transducer of the last evolution
         /// </summary>
         public Transducer EvolutionResult
         {
@@ -293,24 +297,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             _innovations = new List<Innovation>();
             _species = new List<Species>();
             _population = new Misc.SortedList<Transducer>();
+            _mutationSuccess = new Dictionary<string, List<double>>();
 
+            var paramPreset = new DefaultNeatPreset();
             _neatParameters = new NEATParameters();
-            _neatParameters.SurvivalRate = 0.5;
-            _neatParameters.CompatibilityThreshold = 3d;
-            _neatParameters.CompatibilityThresholdDelta = 0.5;
-            _neatParameters.CriticalSpecieCount = 35;
-            _neatParameters.AddNodeMutationProbability = 0.2;
-            _neatParameters.AddTransitionMutationProbability = 0.85;
-            _neatParameters.InnovationResetPerGeneration = false;
+            _neatParameters.LoadFromPreset(paramPreset);
 
             _generalParameters = new GeneralEAParameters();
-            _generalParameters.MaxIndividualSize = 10;
-            _generalParameters.InitialPopulationSize = _generalParameters.MaxPopulationSize;
-            _generalParameters.TransitionTriggerMutationProbability = 0.95;
-            _generalParameters.TransitionActionMutationProbability = 0.88;
-            _generalParameters.TransitionDeletionMutationProbability = 0d;
-            _generalParameters.StateDeletionMutationProbability = 0d;
-            _generalParameters.SelectionProportion = 0.65;
+            _generalParameters.LoadFromPreset(paramPreset);
 
             random = new Random();
         }
@@ -354,8 +348,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// Resets collections and fields
         /// </summary>
-        protected void Reset()
+        public void Reset()
         {
+            if (_isRunning) return;
+
             _innovations.Clear();
             foreach (var species in _species)
             {
@@ -369,6 +365,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             _stateIndex = 0;
             EvaluationCount = 0;
             _globalInnovationNumber = 0;
+            EvolutionResult = null;
+
+            _mutationSuccess.Clear();
+
+            StatNotification();
         }
 
         #endregion
@@ -439,108 +440,88 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         #region Mutation
 
         /// <summary>
-        /// Created a new transition by performing a structural mutation on an existing transducer
+        /// Adds a random trandom transition to the transducer
         /// </summary>
-        /// <returns>the mutated transducer</returns>
-        protected virtual Transducer MutateTransducer(Transducer transducer)                  
+        private void AddTransitionMutation(Transducer t)
         {
-            // 'Add connection' mutation - adds randomly a new transition between two states
-            Action<Transducer> AddConnection = (T) =>
+            if (t.States.Count == 0) return;
+
+            var first = random.Next(t.States.Count);
+            var second = random.Next(t.States.Count);
+
+            var transition = CreateRandomTransition(DetectInnovationNumberForConnection
+                (t.States[first].ID, t.States[second].ID));
+            t.AddTransition(t.States[first], t.States[second],
+                CreateRandomTrigger(), transition);
+        }
+
+        /// <summary>
+        /// Adds randomly a new state between two connected states 
+        /// </summary>
+        private void AddNodeMutation(Transducer t)
+        {
+            if (t.States.Count == 0 || t.States.Count == _generalParameters.MaxIndividualSize) return;
+
+            var connected = new List<Tuple<int, int>>();
+            for (int i = 0; i < t.States.Count; ++i)
             {
-                if (T.States.Count == 0)
-                {
-                    Logger.CurrentLogger.LogWarning("Got a transducer for transition mutation without any states. "
-                        + "Something must have gone wrong!");
-                    return;
-                }
-                var first = random.Next(T.States.Count);
-                var second = random.Next(T.States.Count);
-
-                var transition = CreateRandomTransition(DetectInnovationNumberForConnection
-                    (T.States[first].ID, T.States[second].ID));
-                T.AddTransition(T.States[first], T.States[second], 
-                    CreateRandomTrigger(), transition);
-            };
-
-            // 'Add node' mutation - adds randomly a new state between two connected states 
-            Action<Transducer, List<Tuple<int, int>>> AddNode = (T, Candidates) =>
-            {
-                if (Candidates.Count == 0) return;
-
-                var selected = Candidates[random.Next(Candidates.Count)];
-                var innovation = DetectInnovationNumberForNodeMutation(T.States[selected.Item1].ID, T.States[selected.Item2].ID);
-
-                var firstTransition = CreateRandomTransition(innovation.Item1);
-                var secondTransition = CreateRandomTransition(innovation.Item2);
-
-                T.States[selected.Item1].RemoveTransition(T.States[selected.Item2].ID);
-                var newState = new TransducerState(innovation.Item3);
-                T.AddState(newState);
-                T.AddTransition(T.States[selected.Item1], newState,
-                    CreateRandomTrigger(), firstTransition);
-                T.AddTransition(newState, T.States[selected.Item2],
-                    CreateRandomTrigger(), secondTransition);
-            };
-
-
-            var mutated = (Transducer)transducer.Clone();
-
-            var connected = new List<Tuple<int,int>>();
-
-            for (int i = 0; i < mutated.States.Count; ++i)
-            {
-                for (int j = 0; j < mutated.States.Count; ++j)
+                for (int j = 0; j < t.States.Count; ++j)
                 {
                     if (i == j) continue;
-                    if (mutated.States[i].GetTransition(mutated.States[j].ID) != null)
+                    if (t.States[i].GetTransition(t.States[j].ID) != null)
                     {
                         connected.Add(new Tuple<int, int>(i, j));
                     }
                 }
             }
 
-            if (random.NextDouble() <= _neatParameters.AddTransitionMutationProbability)
-            {
-                AddConnection(mutated);
-            }
-            if (mutated.States.Count < _generalParameters.MaxIndividualSize
-                && random.NextDouble() <= _neatParameters.AddNodeMutationProbability)
-            {
-                AddNode(mutated, connected);
-            }
+            if (connected.Count == 0) return;
 
-            return mutated;
+            var selected = connected[random.Next(connected.Count)];
+            var innovation = DetectInnovationNumberForNodeMutation(t.States[selected.Item1].ID, 
+                t.States[selected.Item2].ID);
+
+            var firstTransition = CreateRandomTransition(innovation.Item1);
+            var secondTransition = CreateRandomTransition(innovation.Item2);
+
+            t.States[selected.Item1].RemoveTransition(t.States[selected.Item2].ID);
+            var newState = new TransducerState(innovation.Item3);
+            t.AddState(newState);
+            t.AddTransition(t.States[selected.Item1], newState,
+                CreateRandomTrigger(), firstTransition);
+            t.AddTransition(newState, t.States[selected.Item2],
+                CreateRandomTrigger(), secondTransition);
         }
 
         /// <summary>
-        /// Performs mutation by deletion of a node / transition
+        /// Removes a random transition from the transducer
         /// </summary>
-        /// <param name="t">the transducer for mutation</param>
-        protected virtual void MutateByDeletion(Transducer t)
+        private void RemoveTransitionMutation(Transducer t)
         {
-            // remove transition mutation
-            if (random.NextDouble() <= _generalParameters.TransitionDeletionMutationProbability)
+            var connected = new List<Tuple<int, int>>();
+            for (int i = 0; i < t.States.Count; ++i)
             {
-                var connected = new List<Tuple<int, int>>();
-                for (int i = 0; i < t.States.Count; ++i)
+                for (int j = 0; j < t.States.Count; ++j)
                 {
-                    for (int j = 0; j < t.States.Count; ++j)
+                    if (i == j) continue;
+                    if (t.States[i].GetTransition(t.States[j].ID) != null)
                     {
-                        if (i == j) continue;
-                        if (t.States[i].GetTransition(t.States[j].ID) != null)
-                        {
-                            connected.Add(new Tuple<int, int>(i, j));
-                        }
+                        connected.Add(new Tuple<int, int>(i, j));
                     }
                 }
-                if (connected.Count > 0)
-                {
-                    var selected = connected[random.Next(connected.Count)];
-                    t.States[selected.Item1].RemoveTransition(t.States[selected.Item2].ID);
-                }
             }
+            if (connected.Count > 0)
+            {
+                var selected = connected[random.Next(connected.Count)];
+                t.States[selected.Item1].RemoveTransition(t.States[selected.Item2].ID);
+            }
+        }
 
-            // remove state mutation
+        /// <summary>
+        /// Removes a random state from the transducer
+        /// </summary>
+        private void RemoveStateMutation(Transducer t)
+        {
             if (t.States.Count <= 1) return;
             if (random.NextDouble() <= _generalParameters.StateDeletionMutationProbability)
             {
@@ -558,12 +539,29 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
             }
         }
+        
+        /// <summary>
+        /// Performs a trigger mutation on the transducer
+        /// </summary>
+        private void MutateRandomTrigger(Transducer t)
+        {
+            if (t.States.Count == 0) return;
+            var selectedState = t.States[random.Next(t.States.Count)];
+            var transitions = selectedState.GetListOfTransitions();
+            if (transitions.Count == 0) return;
+            
+            var selected = transitions[random.Next(transitions.Count)];
+            var trigger = CreateRandomTrigger();
+            var dest = selectedState.GetDestinationIdByTrigger(selected.TransitionTrigger.TransitionEvent);
+            selectedState.RemoveTransition(selected.TransitionTrigger.TransitionEvent);
+            selectedState.AddTransition(trigger.TransitionEvent, selected, dest);
+            selected.TransitionTrigger = trigger;
+        }
 
         /// <summary>
-        /// Performs mutation on a random transition
+        /// Performs an action mutation on the transducer
         /// </summary>
-        /// <param name="t">the transducer for mutation</param>
-        protected virtual void MutateTransition(Transducer t)
+        private void MutateRandomAction(Transducer t)
         {
             if (t.States.Count == 0) return;
             var selectedState = t.States[random.Next(t.States.Count)];
@@ -571,33 +569,63 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             if (transitions.Count == 0) return;
 
             var selected = transitions[random.Next(transitions.Count)];
-
-            // trigger mutation
-            if (random.NextDouble() <= _generalParameters.TransitionTriggerMutationProbability)
-            {
-                var trigger = CreateRandomTrigger();
-
-                var dest = selectedState.GetDestinationIdByTrigger(selected.TransitionTrigger.TransitionEvent);
-                selectedState.RemoveTransition(selected.TransitionTrigger.TransitionEvent);
-                selectedState.AddTransition(trigger.TransitionEvent, selected, dest);
-                selected.TransitionTrigger = trigger;
-            }
-
-            // action mutation
-            if (random.NextDouble() <= _generalParameters.TransitionActionMutationProbability)
-            {
-                var action = Experiment.TransitionActions.
+            var action = Experiment.TransitionActions.
                     ElementAt(random.Next(Experiment.TransitionActions.Count()));
-                selected.TransitionAction = action;
-            }
+            selected.TransitionAction = action;
+        }
 
-            // translation mutation
-            if (random.NextDouble() <= _generalParameters.TransitionTranslationMutationProbability)
-            {
-                var translation = Experiment.TransitionTranslations
+        /// <summary>
+        /// Performs a translation mutation on the transducer
+        /// </summary>
+        /// <param name="t"></param>
+        private void MutateRandomTranslation(Transducer t)
+        {
+            if (t.States.Count == 0) return;
+            var selectedState = t.States[random.Next(t.States.Count)];
+            var transitions = selectedState.GetListOfTransitions();
+            if (transitions.Count == 0) return;
+
+            var selected = transitions[random.Next(transitions.Count)];
+            var translation = Experiment.TransitionTranslations
                     .ElementAt(random.Next(Experiment.TransitionTranslations.Count()));
-                selected.Translation = translation;
-            }
+            selected.Translation = translation;
+        }
+
+        /// <summary>
+        /// Initializes the list of every available mutations
+        /// </summary>
+        private void ConstructListOfMutations()
+        {
+            _listOfMutations = new List<Tuple<string, Action<Transducer>>>();
+
+            // if there is no chance, don't put amongst the options
+            if (_neatParameters.AddNodeMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Add node", AddNodeMutation));
+            if (_neatParameters.AddTransitionMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Add transition", AddTransitionMutation));
+            if (_generalParameters.TransitionDeletionMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Delete transition", RemoveTransitionMutation));
+            if (_generalParameters.StateDeletionMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Delete node", RemoveStateMutation));
+            if (_generalParameters.TransitionTriggerMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Mutate trigger", MutateRandomTrigger));
+            if (_generalParameters.TransitionActionMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Mutate action", MutateRandomAction));
+            if (_generalParameters.TransitionTranslationMutationProbability != 0d) 
+                _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Mutate translation", MutateRandomTranslation));
+        }
+
+        /// <summary>
+        /// Performs mutation on a random transition
+        /// </summary>
+        protected virtual void MutateTransducer(Transducer t)
+        {
+            if (_listOfMutations.Count == 0) return;
+            // choose one and use it
+            var selectedMutation = _listOfMutations[random.Next(_listOfMutations.Count)];
+            selectedMutation.Item2.Invoke(t);
+
+            t.EvaluationInfo.LastMutation = selectedMutation.Item1; // also save the mutation name
         }
 
         #endregion
@@ -687,16 +715,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         protected virtual void InitializePopulation()
         {
-            // Starting out minimally - ???? only two states wit a random transition ????
+            // Starting out minimally - only two states wit a random transition
             for (int i = 0; i < GeneralEAParameters.InitialPopulationSize; ++i)
             {
                 var t = new Transducer();
                 var s1 = new TransducerState(1);
-                var s2 = new TransducerState(2);
                 t.AddState(s1);
-                t.AddState(s2);
-                var trans = CreateRandomTransition(DetectInnovationNumberForConnection(s1.ID, s2.ID));
-                t.AddTransition(s1, s2, CreateRandomTrigger(), trans);
+                if (_generalParameters.MaxIndividualSize > 1)
+                {
+                    var s2 = new TransducerState(2);
+                    t.AddState(s2);
+                    var trans = CreateRandomTransition(DetectInnovationNumberForConnection(s1.ID, s2.ID));
+                    t.AddTransition(s1, s2, CreateRandomTrigger(), trans);
+                }
                 _population.Add(t);
             }
 
@@ -730,6 +761,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             Logger.CurrentLogger.LogEvolutionStart(this.Name, Experiment.Name);
 
             Reset();
+            ConstructListOfMutations();
             _isRunning = true;
 
             InitializePopulation();
@@ -765,9 +797,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
                 {
                     RaiseAlertEvent("Evolution ended!\nStatus: successful, solution found\nResult:\n" + bestOne.ToString());
+                    foreach (var mutation in _mutationSuccess)
+                    {
+                        Logger.CurrentLogger.LogStat(mutation.Key, mutation.Value.Average());
+                    }
                     Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), true);
                     RaiseGenerationEndEvent();
                     EvolutionResult = bestOne;
+                    _isRunning = false;
                     return;
                 }
 
@@ -778,6 +815,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, generation threshold reached");
                     RaiseGenerationEndEvent();
                     EvolutionResult = bestOne;
+                    _isRunning = false;
                     return;
                 }
 
@@ -844,19 +882,23 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                         }
                         else
                         {
-                            // structural mutation
-                            babyTransducer = MutateTransducer(c);
+                            babyTransducer = (Transducer) c.Clone();
                         }
-
+                        // check out fitness of the baby before any mutation
+                        var fitnessBefore = Experiment.Run(babyTransducer);
                         // mutate the newcomer
-                        babyTransducer = MutateTransducer(babyTransducer);
-                        MutateTransition(babyTransducer);
-                        MutateByDeletion(babyTransducer);
-
+                        MutateTransducer(babyTransducer);
                         // evaluate the newcomer
                         var fitness = Experiment.Run(babyTransducer);
                         babyTransducer.EvaluationInfo.Fitness = fitness;
                         EvaluationCount++;
+                        // let's see how good was the muation
+                        var mutation = babyTransducer.EvaluationInfo.LastMutation;
+                        if (!_mutationSuccess.ContainsKey(mutation))
+                        {
+                            _mutationSuccess.Add(mutation, new List<double>());
+                        }
+                        if (fitness - fitnessBefore > 0) _mutationSuccess[mutation].Add(fitness - fitnessBefore);
 
                         newGeneration.Add(babyTransducer);
                     }
@@ -873,8 +915,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
 
                 // replace population
-                //var amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;
-                //var amountPerSpecie = _species.Count / 
                 var amountToSurvive = Convert.ToInt32(_population.Count * _generalParameters.ReplacementProportion);
                 if (amountToSurvive + newGeneration.Count > _generalParameters.MaxPopulationSize)
                 {

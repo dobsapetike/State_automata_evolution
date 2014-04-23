@@ -7,6 +7,13 @@ namespace BenchmarkDepot.Classes.Core.Experiments
     public class CatchMeIfYouCanExperiment : IExperiment
     {
 
+        private ExperimentProperties _properties;
+
+        public ExperimentProperties Properties
+        {
+            get { return _properties; }
+        }
+
         public string Name
         {
             get { return "Catch Me if You Can"; }
@@ -35,6 +42,9 @@ namespace BenchmarkDepot.Classes.Core.Experiments
                 }; 
             }
         }
+
+        public void Reset()
+        { }
 
         public IEnumerable<string> TransitionTranslations
         {

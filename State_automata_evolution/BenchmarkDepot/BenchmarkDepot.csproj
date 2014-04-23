@@ -82,6 +82,7 @@
     <Compile Include="Classes\Core\EAlgotihms\Accessories\Innovation.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithm.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Accessories\EvaluationInfo.cs" />
+    <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmCompleteStructure.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\DefaultNeatPreset.cs" />
     <Compile Include="Classes\Core\EAlgotihms\Parameters\GeneralEAParameters.cs" />
     <Compile Include="Classes\Core\EAlgotihms\NEATAlgorithmInitialRandom.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Classes\Core\Experiments\BinaryTransducer.cs" />
     <Compile Include="Classes\Core\Experiments\CatchMeIfYouCan.cs" />
     <Compile Include="Classes\Core\Experiments\DressingRoom.cs" />
+    <Compile Include="Classes\Core\Experiments\ExperimentProperties.cs" />
     <Compile Include="Classes\Core\Experiments\IExperiment.cs" />
     <Compile Include="Classes\Core\Experiments\NoZeroLeftBehind.cs" />
     <Compile Include="Classes\Core\Experiments\Termostat.cs" />

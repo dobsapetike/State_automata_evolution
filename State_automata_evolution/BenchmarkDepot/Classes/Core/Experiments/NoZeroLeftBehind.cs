@@ -13,6 +13,13 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         private Random random = new Random();
         private const double ZeroProbability = 0.75;
 
+        private ExperimentProperties _properties;
+
+        public ExperimentProperties Properties
+        {
+            get { return _properties; }
+        }
+
         public string Name
         {
             get { return "No Zero Left Behind"; }
@@ -34,22 +41,39 @@ namespace BenchmarkDepot.Classes.Core.Experiments
         public NoZeroLeftBehindExperiment()
         {
             TransitionActions = new List<Action> { null };
-            TransitionTranslations = new List<string> { "0", "1", "2", "3" };
-            TransitionEvents = new List<TransitionTrigger> 
-            { 
-                new TransitionTrigger("0"), 
-                new TransitionTrigger("1"), 
-                new TransitionTrigger("2"),
-                new TransitionTrigger("3"),
-            };
+
+            _properties = new ExperimentProperties();
+            _properties.AddProperty("Number limit", 3);
+            _properties.AddProperty("Zero probability", 0.75);
+            _properties.AddProperty("Test cases", 750);
+            _properties.AddProperty("Test string length", 10);
+            SetCollections();
+        }
+
+        public void Reset()
+        {
+            SetCollections();
+        }
+
+        private void SetCollections()
+        {
+            var transl = new List<string>();
+            var triggers = new List<TransitionTrigger>();
+            for (var i = 0; i <= _properties["Number limit"]; ++i)
+            {
+                transl.Add(i + "");
+                triggers.Add(new TransitionTrigger(i + ""));
+            }
+            TransitionTranslations = transl;
+            TransitionEvents = triggers;
         }
 
         private string GenerateTestString()
         {
             var res = "";
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < _properties["Test string length"]; ++i)
             {
-                if (random.NextDouble() <= ZeroProbability)
+                if (random.NextDouble() <= _properties["Zero probability"])
                 {
                     res += '0';
                 }
@@ -88,10 +112,11 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
         public double Run(Transducer transducer)
         {
+            SetCollections();
             _transducer = transducer;
 
             var score = 0d;
-            var noTests = 350;
+            var noTests = _properties["Test cases"];
 
             for (var i = 0; i < noTests; ++i)
             {
@@ -107,13 +132,11 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
         public void TestDrive(Transducer transducer)
         {
+            SetCollections();
             Console.WriteLine("******** No Zero Left Behind *********");
             Console.WriteLine(Description);
-            Console.Write("Input: string containing characters of ");
-            foreach (var c in TransitionTranslations)
-            {
-                Console.Write(c + " ");
-            }
+            Console.Write("Input: string containing characters of "
+                + TransitionTranslations.Aggregate((x, y) => x + ", " + y));
             Console.WriteLine('\n' + new String('*', 40) + '\n');
             for (; ; )
             {
@@ -149,4 +172,5 @@ namespace BenchmarkDepot.Classes.Core.Experiments
 
     }
 }
+
 

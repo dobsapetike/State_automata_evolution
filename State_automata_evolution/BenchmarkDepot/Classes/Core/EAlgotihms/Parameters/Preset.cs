@@ -150,8 +150,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         /// <summary>
         /// Simple control of a preset name - returns true if name is not taken
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
         public static bool ControlPresetName(string name)
         {
             if (string.IsNullOrEmpty(name)) return false;
