@@ -15,9 +15,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const bool DefaultSpeciesAllowed = true;
         const int DefaultCriticalSpecieCount = 50;
         const int DefaultSpeciesAllowedStagnatedGenerationCount = 3;
-        const double DefaultCompatibilityThreshold = 3.0;
-        const double DefaultMinCompatibilityThreshold = 0.5;
-        const double DefaultCompatibilityThresholdDelta = 0.2;
+        const double DefaultCompatibilityThreshold = 0.5;
+        const double DefaultMinCompatibilityThreshold = 0.1;
+        const double DefaultCompatibilityThresholdDelta = 0.02;
 
         const double DefaultCoefExcessGeneFactor = 1.0;
         const double DefaultCoefDisjointGeneFactor = 1.0;
@@ -26,8 +26,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         const double DefaultAddNodeMutationProbability = 0.25;
         const double DefaultAddTransitionMutationProbability = 0.25;
-
-        const double DefaultSurvivalRate = 0.5;
 
         const bool DefaultInnovationResetPerGeneration = true;
 
@@ -50,8 +48,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _addNodeMutationProbability;
         private double _addTransitionMutationProbability;
 
-        private double _survivalRate;
-
         private bool _innovationResetPerGeneration;
 
         #endregion
@@ -69,6 +65,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 MinCompatibilityThreshold = value 
                     ? DefaultMinCompatibilityThreshold 
                     : Double.PositiveInfinity; // this ensures each individuals gets into the same species
+                CompatibilityThreshold = DefaultCompatibilityThreshold;
                 _speciesAllowed = value;
                 RaisePropertyChanged(() => SpeciesAllowed);
             }
@@ -236,19 +233,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             }
         }
 
-        /// <summary>
-        /// Gets and sets what top percent of the species is qualified for 
-        /// mutation/crossover
-        /// </summary>
-        public double SurvivalRate
-        {
-            get { return _survivalRate; }
-            set 
-            { 
-                _survivalRate = value > 1d ? 1d : value;
-                RaisePropertyChanged(() => SurvivalRate);
-            }
-        }
 
         /// <summary>
         /// Gets and sets whether the list of every occurred innovations should reset
@@ -288,8 +272,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             _addNodeMutationProbability = DefaultAddNodeMutationProbability;
             _addTransitionMutationProbability = DefaultAddTransitionMutationProbability;
 
-            _survivalRate = DefaultSurvivalRate;
-
             _innovationResetPerGeneration = DefaultInnovationResetPerGeneration;
         }
 
@@ -314,7 +296,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MatchingWeightDifferenceValue = preset.MatchingWeightDifferenceValue;
             AddNodeMutationProbability = preset.AddNodeMutationProbability;
             AddTransitionMutationProbability = preset.AddTransitionMutationProbability;
-            SurvivalRate = preset.SurvivalRate;
             InnovationResetPerGeneration = preset.InnovationResetPerGeneration;
         }
 

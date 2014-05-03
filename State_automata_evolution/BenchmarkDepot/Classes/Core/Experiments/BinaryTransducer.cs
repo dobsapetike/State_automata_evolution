@@ -45,7 +45,7 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             TransitionEvents = new List<TransitionTrigger> { new TransitionTrigger("0"), new TransitionTrigger("1") };
 
             _properties = new ExperimentProperties();
-            _properties.AddProperty("Test cases", 1000);
+            _properties.AddProperty("Test cases", 100);
             _properties.AddProperty("Test string length", 10);
         }
 

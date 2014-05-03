@@ -92,25 +92,26 @@ namespace BenchmarkDepot.Classes.GUI.ViewModel
             ConsoleManager.AllocConsole();
             ConsoleManager.HideConsole();
 
-            var t = new Transducer();
-            var s1 = new TransducerState(0);
-            var s2 = new TransducerState(1);
-            var s3 = new TransducerState(2);
-
-            t.AddState(s1); t.AddState(s2); t.AddState(s3);
-            t.AddTransition(s1, s2, new TransitionTrigger("boy arrives"), new TransducerTransition(null, "X", 1));
-            t.AddTransition(s1, s2, new TransitionTrigger("girl arrives"), new TransducerTransition(null, "X", 1));
-            t.AddTransition(s2, s3, new TransitionTrigger("boy arrives"), new TransducerTransition(null, "X", 2));
-            t.AddTransition(s2, s3, new TransitionTrigger("girl arrives"), new TransducerTransition(null, "X", 2));
-
-            t.AddTransition(s3, s2, new TransitionTrigger("boy leaves"), new TransducerTransition(null, "X", 3));
-            t.AddTransition(s3, s2, new TransitionTrigger("girl leaves"), new TransducerTransition(null, "X", 3));
-            t.AddTransition(s2, s1, new TransitionTrigger("boy leaves"), new TransducerTransition(null, "X", 4));
-            t.AddTransition(s2, s1, new TransitionTrigger("girl leaves"), new TransducerTransition(null, "X", 4));
-
-            var e = new DressingRoomExperiment();
-            var score = e.Run(t);
-            System.Windows.MessageBox.Show(score.ToString());
+            //var ex = new CatchMeIfYouCanExperiment();
+            //var t = new Transducer();
+            //var s = new TransducerState(1);
+            //var s2 = new TransducerState(2);
+            //t.AddState(s); t.AddState(s2);
+            //t.AddTransition(s, s, ex.TransitionEvents.ElementAt(0),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(0), "X", 1));
+            //t.AddTransition(s, s, ex.TransitionEvents.ElementAt(1),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(1), "X", 1));
+            //t.AddTransition(s, s, ex.TransitionEvents.ElementAt(2),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(2), "X", 1));
+            //t.AddTransition(s, s, ex.TransitionEvents.ElementAt(3),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(3), "X", 1));
+            //t.AddTransition(s, s2, ex.TransitionEvents.ElementAt(4),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(4), "X", 2));
+            //t.AddTransition(s2, s, ex.TransitionEvents.ElementAt(5),
+            //    new TransducerTransition(ex.TransitionActions.ElementAt(4), "X", 3));
+            //var sc = ex.Run(t);
+            //var tc = sc;
+            //ex.TestDrive(t);
         }
 
         #endregion

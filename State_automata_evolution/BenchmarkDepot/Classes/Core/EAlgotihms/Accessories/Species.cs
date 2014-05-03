@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Misc = BenchmarkDepot.Classes.Misc;
+using BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
@@ -72,7 +73,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         /// </summary>
         public int SpawnCount
         {
-            get { return Convert.ToInt32(_population.Count * _neatParams.SurvivalRate); }
+            get;
+            set;
         }
         
         /// <summary>
@@ -90,6 +92,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                 _representative = value; 
             }
         }
+
+        private Random random = new Random();
 
         #endregion
 
@@ -112,14 +116,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         /// <summary>
         /// Detects if a given transducer is compatible with the species representative
         /// </summary>
-        private bool IsCompatible(Transducer t)
+        public bool IsCompatible(Transducer t)
         {
-            
+
             // Returns a sorted collection of all innovations in a given transducer along with the 
             // transition actions and triggers
-            Func<Transducer, SortedDictionary<int, Tuple<HashSet<TransitionTrigger>,HashSet<string>>>> GetInnovations = (T) =>
+            Func<Transducer, SortedDictionary<int, Tuple<HashSet<TransitionTrigger>, HashSet<string>>>> GetInnovations = (T) =>
             {
-                var result = new SortedDictionary<int, Tuple<HashSet<TransitionTrigger>,HashSet<string>>>();
+                var result = new SortedDictionary<int, Tuple<HashSet<TransitionTrigger>, HashSet<string>>>();
                 foreach (var state in T.States)
                 {
                     var trans = state.GetListOfTransitions();
@@ -128,8 +132,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                         var inNumb = tran.InnovationNumber;
                         if (!result.ContainsKey(inNumb))
                         {
-                            result.Add(inNumb, new Tuple<HashSet<TransitionTrigger>,HashSet<string>>
-                                (new HashSet<TransitionTrigger>(),new HashSet<string>()));
+                            result.Add(inNumb, new Tuple<HashSet<TransitionTrigger>, HashSet<string>>
+                                (new HashSet<TransitionTrigger>(), new HashSet<string>()));
                         }
                         result[inNumb].Item1.Add(tran.TransitionTrigger);
                         result[inNumb].Item2.Add(tran.ActionName);
@@ -137,7 +141,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                 }
                 return result;
             };
-
+            
             if (!_neatParams.SpeciesAllowed) return true; // because this is the only species
                 
             var innovationsRep = GetInnovations(_representative);
@@ -151,7 +155,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
 
             double weightDifference = 0d;
             int excessCount = 0, disjointCount = 0;
-            for (int i = 0; i < maxInnovation; ++i)
+            for (int i = 1; i <= maxInnovation; ++i)
             {
                 var isInRep = innovationsRep.ContainsKey(i);
                 var isInNew = innovationsNew.ContainsKey(i);
@@ -178,7 +182,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                 (_neatParams.CoefExcessGeneFactor * excessCount) / N +
                 (_neatParams.CoefDisjointGeneFactor * disjointCount) / N +
                 _neatParams.CoefMatchingWeightDifferenceFactor * weightDifference;
-            compDistance = compDistance / (double) N;
+            compDistance = 1d - (compDistance / N);
+
             return compDistance <= _neatParams.CompatibilityThreshold;
         }
 
@@ -195,6 +200,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
             }
             return compatible;
         }
+
 
         /// <summary>
         /// Called at the start of every generation.
@@ -215,7 +221,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         public void CheckStagnation()
         {
             if (_population.Count <= 1) StagnatedGenerations = _neatParams.AllowedSpeciesStagnatedGenerationCount + 1;
-            if (_population.Count < Convert.ToInt32(_neatParams.CriticalSpecieCount * 0.2))
+            if (_population.Count < Convert.ToInt32(_generalParam.MaxPopulationSize * 0.01))
             {
                 ++StagnatedGenerations;
             }
@@ -226,11 +232,60 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         /// </summary>
         public void SelectNewRepresentative()
         {
-            var best = _population.Last();
+            var best = _population.MaxBy(x => x.EvaluationInfo.Fitness);
             if (best != _representative)
             {
                 _representative = best;
             }
+
+            // 
+            // collection for storing the number of instances of a specific structure
+            // first key is the innovation number, second is the string consisting of
+            // the transition event and action name, the value is the counter
+            /*var transitionCount = new Dictionary<int, Dictionary<string, int>>();
+            var innovationId = new Dictionary<int, Tuple<int, int>>();
+            var actionBuffer = new Dictionary<string, Action>();
+            foreach (var individual in _population)
+            {
+                foreach (var state in individual.States)
+                {
+                    var transitions = state.GetListOfTransitions();
+                    foreach (var transition in transitions)
+                    {
+                        if (!transitionCount.ContainsKey(transition.StateFrom))
+                        {
+                            transitionCount[transition.StateFrom] = new Dictionary<string,int>();
+                            innovationId[transition.InnovationNumber] = new Tuple<int, int>
+                               (transition.StateFrom, transition.StateTo);
+                        }
+                        ++transitionCount[transition.InnovationNumber]
+                            [transition.TransitionTrigger.TransitionEvent + " " + transition.ActionName + " " + transition.Translation];
+                        if (!actionBuffer.ContainsKey(transition.ActionName)) 
+                        {
+                            actionBuffer[transition.ActionName] = null;
+                        }
+                        if (transition.TransitionAction != null)
+                        {
+                            actionBuffer[transition.ActionName] = new Action(transition.TransitionAction);
+                        }
+                    }
+                }
+            }
+
+            var representative = new Transducer();
+            // now fill the representative with the most frequent transitions
+            foreach (var t in transitionCount)
+            {
+                var transitionStrings = t.Value.MaxBy(x => x.Value).Key.Split();
+
+                var eventName = transitionStrings[0];
+                var actionName = transitionStrings[1];
+                var translation = transitionStrings[2];
+                var stateId = innovationId[t.Key];
+                representative.AddTransition(new TransducerState(stateId.Item1), new TransducerState(stateId.Item2),
+                    new TransitionTrigger(eventName), new TransducerTransition(
+                        actionBuffer[actionName], translation, t.Key));
+            } */
         }
 
         /// <summary>
@@ -249,14 +304,17 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         /// </summary>
         public Transducer GetCandidateForMultiplication()
         {
-            if (_population.Count == 1) return _representative;
+            int amount = Convert.ToInt32(_population.Count * _generalParam.SelectionProportion);
+            if (amount <= 1) return _population[0];
 
-            var r = new Random();
-            int amount = Convert.ToInt32(_population.Count * _neatParams.SurvivalRate);
             // the best individuals are at the end of the collection
-            int selected = r.Next(_population.Count - amount, _population.Count);
-
-            return _population[selected];
+            var selected = new HashSet<Transducer>(); // champions in the tournament
+            for (var i = 0; i < _generalParam.TournamentSize; ++i)
+            {
+                var sel = random.Next(Math.Max(_population.Count - amount - 1, 0), _population.Count);
+                selected.Add(_population[sel]);
+            }
+            return selected.MaxBy(x => x.EvaluationInfo.Fitness);
         }
 
         /// <summary>

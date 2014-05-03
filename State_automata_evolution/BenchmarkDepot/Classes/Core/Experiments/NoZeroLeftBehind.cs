@@ -45,7 +45,7 @@ namespace BenchmarkDepot.Classes.Core.Experiments
             _properties = new ExperimentProperties();
             _properties.AddProperty("Number limit", 3);
             _properties.AddProperty("Zero probability", 0.75);
-            _properties.AddProperty("Test cases", 750);
+            _properties.AddProperty("Test cases", 50);
             _properties.AddProperty("Test string length", 10);
             SetCollections();
         }

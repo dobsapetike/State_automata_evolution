@@ -24,7 +24,7 @@
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         
-        <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" TextDecorations="Underline">
+        <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" TextDecorations="Underline" FontFamily="Consolas">
             <Run Text="{Binding Algorithm.Name, Mode=OneWay}"/>
             <Run Text="  -  "/>
             <Run Text="{Binding Experiment.Name, Mode=OneWay}"/>

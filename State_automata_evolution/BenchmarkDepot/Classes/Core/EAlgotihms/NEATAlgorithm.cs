@@ -6,6 +6,7 @@ using BenchmarkDepot.Classes.Misc;
 using BenchmarkDepot.Classes.Core.Experiments;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Parameters;
 using BenchmarkDepot.Classes.Core.EAlgotihms.Accessories;
+using System.Threading;
 
 namespace BenchmarkDepot.Classes.Core.EAlgotihms
 {
@@ -58,7 +59,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// List of all innovations that occurred during the current generation
         /// </summary>
-        protected List<Innovation> _innovations;
+        protected Dictionary<int, List<Innovation>> _innovations;
 
         /// <summary>
         /// List of all species in the population
@@ -294,7 +295,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         public NEATAlgorithm()
         {
-            _innovations = new List<Innovation>();
+            _innovations = new Dictionary<int, List<Innovation>>();
             _species = new List<Species>();
             _population = new Misc.SortedList<Transducer>();
             _mutationSuccess = new Dictionary<string, List<double>>();
@@ -383,14 +384,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// incremented and returned</returns>
         protected int DetectInnovationNumberForConnection(int firstId, int secondId)
         {
-            foreach (var innovation in _innovations)
+            if (!_innovations.ContainsKey(firstId))
+            {
+                _innovations[firstId] = new List<Innovation>();
+            }
+
+            foreach (var innovation in _innovations[firstId])//_innovations)
             {
                 if (innovation.FirstState == firstId && innovation.SecondState == secondId)
                 {
                     return innovation.InnovationNumber;
                 }
             }
-            _innovations.Add(new Innovation(firstId, secondId, ++_globalInnovationNumber));
+            _innovations[firstId].Add(new Innovation(firstId, secondId, ++_globalInnovationNumber));
             return _globalInnovationNumber;
         }
 
@@ -401,9 +407,14 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// between the first and the new one, innovation number between the new and the second and the id of the new state</returns>
         protected Tuple<int, int, int> DetectInnovationNumberForNodeMutation(int firstId, int secondId)
         {
+            if (!_innovations.ContainsKey(firstId))
+            {
+                _innovations[firstId] = new List<Innovation>();
+            }
+
             var firstCandidates = new Dictionary<int, int>();
             var secondCandidates = new Dictionary<int, int>();
-            foreach (var innovation in _innovations)
+            foreach (var innovation in _innovations[firstId])
             {
                 if (innovation.FirstState == firstId && innovation.CreatedState != -1)
                 {
@@ -422,8 +433,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     // innovation is new - a new state id and innovation numbers are assigned and the innovation is saved
                     _stateIndex++;
                     _globalInnovationNumber += 2;
-                    _innovations.Add(new Innovation(firstId, _stateIndex, _globalInnovationNumber - 1, _stateIndex));
-                    _innovations.Add(new Innovation(_stateIndex, secondId, _globalInnovationNumber, _stateIndex));
+                    _innovations[firstId].Add(new Innovation(firstId, _stateIndex, _globalInnovationNumber-1, _stateIndex));
+                    _innovations[firstId].Add(new Innovation(_stateIndex, secondId, _globalInnovationNumber, _stateIndex));
                     return new Tuple<int, int, int>(_globalInnovationNumber - 1, _globalInnovationNumber, _stateIndex);
                 case 1:
                     // innovation already exists
@@ -445,6 +456,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private void AddTransitionMutation(Transducer t)
         {
             if (t.States.Count == 0) return;
+            if (random.NextDouble() > _neatParameters.AddTransitionMutationProbability) return;
 
             var first = random.Next(t.States.Count);
             var second = random.Next(t.States.Count);
@@ -460,7 +472,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         private void AddNodeMutation(Transducer t)
         {
-            if (t.States.Count == 0 || t.States.Count == _generalParameters.MaxIndividualSize) return;
+            if (t.States.Count == 0 || t.States.Count >= _generalParameters.MaxIndividualSize) return;
+            if (random.NextDouble() > _neatParameters.AddNodeMutationProbability) return;
 
             var connected = new List<Tuple<int, int>>();
             for (int i = 0; i < t.States.Count; ++i)
@@ -498,12 +511,13 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         private void RemoveTransitionMutation(Transducer t)
         {
+            if (random.NextDouble() > _generalParameters.TransitionDeletionMutationProbability) return;
+
             var connected = new List<Tuple<int, int>>();
             for (int i = 0; i < t.States.Count; ++i)
             {
                 for (int j = 0; j < t.States.Count; ++j)
                 {
-                    if (i == j) continue;
                     if (t.States[i].GetTransition(t.States[j].ID) != null)
                     {
                         connected.Add(new Tuple<int, int>(i, j));
@@ -513,6 +527,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             if (connected.Count > 0)
             {
                 var selected = connected[random.Next(connected.Count)];
+                if (t.States[selected.Item1].GetListOfTransitions().Count <= 1) return;
                 t.States[selected.Item1].RemoveTransition(t.States[selected.Item2].ID);
             }
         }
@@ -522,22 +537,27 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// </summary>
         private void RemoveStateMutation(Transducer t)
         {
-            if (t.States.Count <= 1) return;
-            if (random.NextDouble() <= _generalParameters.StateDeletionMutationProbability)
+            if (t.States.Count <= 2) return;
+            if (random.NextDouble() > _generalParameters.StateDeletionMutationProbability) return;
+
+            var transBuff = t.Clone();
+            var index = random.Next(1, t.States.Count); // starting state cannot be deleted
+            var selected = t.States[index];
+
+            selected.ResetTransitions();
+            t.RemoveStateAt(index);
+            foreach (var s in t.States)
             {
-                var index = random.Next(1, t.States.Count); // starting state cannot be deleted
-                var selected = t.States[index];
-                selected.ResetTransitions();
-                t.RemoveStateAt(index);
-                foreach (var s in t.States)
+                var removed = s.RemoveTransition(selected.ID);
+                while (removed)
                 {
-                    var removed = s.RemoveTransition(selected.ID);
-                    while (removed)
-                    {
-                        removed = s.RemoveTransition(selected.ID);
-                    }
+                    removed = s.RemoveTransition(selected.ID);
                 }
             }
+
+            // we don't want a transducer without transitions so if the mutation was so 
+            // radical, just undo it
+            //if (t.GetTransitionCount() == 0) t = transBuff; 
         }
         
         /// <summary>
@@ -546,6 +566,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private void MutateRandomTrigger(Transducer t)
         {
             if (t.States.Count == 0) return;
+            if (random.NextDouble() > _generalParameters.TransitionTriggerMutationProbability) return;
+
             var selectedState = t.States[random.Next(t.States.Count)];
             var transitions = selectedState.GetListOfTransitions();
             if (transitions.Count == 0) return;
@@ -564,6 +586,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         private void MutateRandomAction(Transducer t)
         {
             if (t.States.Count == 0) return;
+            if (random.NextDouble() > _generalParameters.TransitionActionMutationProbability) return;
+
             var selectedState = t.States[random.Next(t.States.Count)];
             var transitions = selectedState.GetListOfTransitions();
             if (transitions.Count == 0) return;
@@ -577,10 +601,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <summary>
         /// Performs a translation mutation on the transducer
         /// </summary>
-        /// <param name="t"></param>
         private void MutateRandomTranslation(Transducer t)
         {
             if (t.States.Count == 0) return;
+            if (random.NextDouble() > _generalParameters.TransitionTranslationMutationProbability) return;
+
             var selectedState = t.States[random.Next(t.States.Count)];
             var transitions = selectedState.GetListOfTransitions();
             if (transitions.Count == 0) return;
@@ -603,9 +628,9 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Add node", AddNodeMutation));
             if (_neatParameters.AddTransitionMutationProbability != 0d) 
                 _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Add transition", AddTransitionMutation));
-            if (_generalParameters.TransitionDeletionMutationProbability != 0d) 
+            if (_generalParameters.TransitionDeletionMutationProbability != 0d)
                 _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Delete transition", RemoveTransitionMutation));
-            if (_generalParameters.StateDeletionMutationProbability != 0d) 
+            if (_generalParameters.StateDeletionMutationProbability != 0d)
                 _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Delete node", RemoveStateMutation));
             if (_generalParameters.TransitionTriggerMutationProbability != 0d) 
                 _listOfMutations.Add(new Tuple<string, Action<Transducer>>("Mutate trigger", MutateRandomTrigger));
@@ -638,7 +663,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// <param name="mommy">first parent</param>
         /// <param name="daddy">second parent</param>
         /// <returns>the resulting offspring</returns>
-        protected virtual Transducer CrossTransducers(Transducer mommy, Transducer daddy)        
+        public virtual Transducer CrossTransducers(Transducer mommy, Transducer daddy)        
         {
             Action<Transducer, SortedDictionary<int, List<TransducerTransition>>> SaveTransitions = (T, D) =>
             {
@@ -663,16 +688,27 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
             var offspring = new Transducer();
 
+            var addedIds = new HashSet<int>();
             foreach (var tran in transitions)
             {
                 if (tran.Value.Count == 0) continue;
 
                 var selected = tran.Value[random.Next(tran.Value.Count)];
+                // size control, so the offspring won't be bigger than the max size
+                if (!addedIds.Contains(selected.StateFrom))
+                {
+                    if (addedIds.Count == _generalParameters.MaxIndividualSize) continue;
+                    addedIds.Add(selected.StateFrom);
+                }
+                if (!addedIds.Contains(selected.StateTo))
+                {
+                    if (addedIds.Count == _generalParameters.MaxIndividualSize) continue;
+                    addedIds.Add(selected.StateTo);
+                }
                 var from = new TransducerState(selected.StateFrom);
                 var to = new TransducerState(selected.StateTo);
-                offspring.AddTransition(from, to, selected.TransitionTrigger, (TransducerTransition)selected.Clone());
+                offspring.AddTransition(from, to, selected.TransitionTrigger, selected.Clone());
             }
-
             return offspring;
         }
 
@@ -684,7 +720,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
         /// Inserts every transducer into a fitting species.
         /// If no suitable species exists a new one is created 
         /// </summary>
-        protected virtual void SpeciatePopulation()
+        protected virtual void SpeciatePopulationAndCalculateSpawnCount()
         {
             foreach (var individual in _population)
             {
@@ -704,6 +740,10 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     _species.Add(newSpecies);
                 }
             }
+            // now that species are created set the spawn count
+            var avrgCount = (int)((_generalParameters.MaxPopulationSize * 
+                _generalParameters.ReplacementProportion) / _species.Count);
+            foreach (var s in _species) s.SpawnCount = avrgCount;
         }
 
         #endregion
@@ -755,6 +795,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
 
         #region Evolutionary Cycle
 
+        private void OnEvolutionEnd(bool success, Transducer best)
+        {
+            Logger.CurrentLogger.LogEvolutionEnd(_generation, best.ToString(), success);
+            RaiseGenerationEndEvent();
+            StatNotification();
+            EvolutionResult = best;
+            _isRunning = false;
+        }
+
         private void PerformEvolution()
         {
             RaiseAlertEvent("Evolution started!");
@@ -776,10 +825,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
             // evolutionary cycle
             for (;;)
             {
+                // check if there is a sufficient solution
+                var bestOne = _population.MaxBy(x => x.EvaluationInfo.Fitness);
+                BestFitness = bestOne.EvaluationInfo.Fitness;
+
                 if (_isRunning == false)
                 {
                     // someone requested to abort the process
-                    RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, process aborted");
+                    StatNotification();
+                    RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, process aborted\n" + bestOne);
                     EvolutionResult = null;
                     return;
                 }
@@ -790,32 +844,23 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 Logger.CurrentLogger.LogStat("Population count", _population.Count);
                 Logger.CurrentLogger.LogStat("Specie count", _species.Count);
 
-                // check if there is a sufficient solution
-                var bestOne = _population.MaxBy(x => x.EvaluationInfo.Fitness);
-                BestFitness = bestOne.EvaluationInfo.Fitness;
                 Logger.CurrentLogger.LogStat("Best fitness", bestOne.EvaluationInfo.Fitness);
                 if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
                 {
                     RaiseAlertEvent("Evolution ended!\nStatus: successful, solution found\nResult:\n" + bestOne.ToString());
-                    foreach (var mutation in _mutationSuccess)
-                    {
-                        Logger.CurrentLogger.LogStat(mutation.Key, mutation.Value.Average());
-                    }
-                    Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), true);
-                    RaiseGenerationEndEvent();
-                    EvolutionResult = bestOne;
-                    _isRunning = false;
+                    //foreach (var mutation in _mutationSuccess)
+                    //{
+                    //    Logger.CurrentLogger.LogStat(mutation.Key, mutation.Value.Average());
+                    //}
+                    OnEvolutionEnd(true, bestOne);
                     return;
                 }
 
                 if (_generation == _generalParameters.GenerationThreshold)
                 {
-                    // no more generations allowed, return the most fit transducer
-                    Logger.CurrentLogger.LogEvolutionEnd(_generation, bestOne.ToString(), false);
+                    // no more generations allowed
                     RaiseAlertEvent("Evolution ended!\nStatus: unsuccessful, generation threshold reached");
-                    RaiseGenerationEndEvent();
-                    EvolutionResult = bestOne;
-                    _isRunning = false;
+                    OnEvolutionEnd(false, bestOne);                    
                     return;
                 }
 
@@ -837,11 +882,11 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 }
 
                 // Respeciate the population
-                SpeciatePopulation();
+                SpeciatePopulationAndCalculateSpawnCount();
                 // adjust compatibility threashold based on the number of species
                 if (_neatParameters.CriticalSpecieCount > 1) // otherwise this feature is turned off 
                 {
-                    if (_species.Count < _neatParameters.CriticalSpecieCount * 0.2)
+                    if (_species.Count < _neatParameters.CriticalSpecieCount * 0.25)
                     {
                         // more species needed, try higher threshold
                         _neatParameters.CompatibilityThreshold -= _neatParameters.CompatibilityThresholdDelta;
@@ -857,53 +902,70 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 // a collection of individuals, which will replace the current generation
                 var newGeneration = new Misc.SortedList<Transducer>();
 
-                // For each species perform selection and mutation resp. crossover
+                // for each species perform selection and mutation resp. crossover
                 foreach (var species in _species)
                 {
+                    bool isBestIn = false;
                     int amountToSpawn = species.SpawnCount;
                     while (amountToSpawn-- > 0)
                     {
                         Transducer babyTransducer;
 
-                        var c = species.GetCandidateForMultiplication();
-                        if (species.Population.Count > 1 && random.NextDouble() <= _generalParameters.CrossoverProbability)
+                        if (!isBestIn)
                         {
-                            // crossover
-                            var cc = species.GetCandidateForMultiplication();
-                            int attemptsLeft = 5;
-                            while (attemptsLeft-- > 0)
-                            {
-                                if (c != cc) break;
-                                cc = species.GetCandidateForMultiplication();
-                            }
-
-                            if (c == cc) continue;
-                            babyTransducer = CrossTransducers(c, cc);
+                            // the best of the species should always survive
+                            isBestIn = true;
+                            babyTransducer = species.Population.MaxBy(x => x.EvaluationInfo.Fitness).Clone();
                         }
                         else
                         {
-                            babyTransducer = (Transducer) c.Clone();
+                            var c = species.GetCandidateForMultiplication();
+                            if (species.Population.Count > 1 && random.NextDouble() <= _generalParameters.CrossoverProbability)
+                            {
+                                // crossover
+                                var cc = species.GetCandidateForMultiplication();
+                                int attemptsLeft = 5;
+                                while (attemptsLeft-- > 0)
+                                {
+                                    if (c != cc) break;
+                                    cc = species.GetCandidateForMultiplication();
+                                }
+
+                                if (c == cc) continue;
+                                babyTransducer = CrossTransducers(c, cc);
+                            }
+                            else
+                            {
+                                babyTransducer = c.Clone();
+                            }
+
+                            // check out fitness of the baby before any mutation
+                            var fitnessBefore = Experiment.Run(babyTransducer);
+                            // mutate the newcomer
+                            for (var i = 0; i < _generalParameters.MutationCount; ++i)
+                            {
+                                var cache = babyTransducer.Clone();
+                                MutateTransducer(babyTransducer);
+                                if (babyTransducer.GetTransitionCount() == 0) babyTransducer = cache;
+                            }
+                            // evaluate the newcomer
+                            var fitness = Experiment.Run(babyTransducer);
+                            babyTransducer.EvaluationInfo.Fitness = fitness;
+                            EvaluationCount++;
+                            // let's see how good was the mutation
+                            //var mutation = babyTransducer.EvaluationInfo.LastMutation;
+                            //if (!_mutationSuccess.ContainsKey(mutation))
+                            //{
+                            //    _mutationSuccess.Add(mutation, new List<double>());
+                            //}
+                            //if (fitness - fitnessBefore > 0) _mutationSuccess[mutation].Add(fitness - fitnessBefore);
                         }
-                        // check out fitness of the baby before any mutation
-                        var fitnessBefore = Experiment.Run(babyTransducer);
-                        // mutate the newcomer
-                        MutateTransducer(babyTransducer);
-                        // evaluate the newcomer
-                        var fitness = Experiment.Run(babyTransducer);
-                        babyTransducer.EvaluationInfo.Fitness = fitness;
-                        EvaluationCount++;
-                        // let's see how good was the muation
-                        var mutation = babyTransducer.EvaluationInfo.LastMutation;
-                        if (!_mutationSuccess.ContainsKey(mutation))
-                        {
-                            _mutationSuccess.Add(mutation, new List<double>());
-                        }
-                        if (fitness - fitnessBefore > 0) _mutationSuccess[mutation].Add(fitness - fitnessBefore);
 
                         newGeneration.Add(babyTransducer);
                     }
                 }
                 Logger.CurrentLogger.LogStat("Newbies created", newGeneration.Count);
+
 
                 // force out explicit fitness sharing and clear the species
                 foreach (var species in _species)
@@ -914,14 +976,34 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     species.Clear();
                 }
 
-                // replace population
-                var amountToSurvive = Convert.ToInt32(_population.Count * _generalParameters.ReplacementProportion);
-                if (amountToSurvive + newGeneration.Count > _generalParameters.MaxPopulationSize)
+                if (System.IO.File.Exists("species.txt")) System.IO.File.Delete("species.txt");
+                var wr = new System.IO.StreamWriter("species.txt");
+                foreach (var ind in newGeneration)
                 {
-                    amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;
+                    wr.WriteLine(ind.ToString().Replace("\n", "\r\n"));
                 }
-                var survivors = _population.Select(x => x).Skip(_population.Count - amountToSurvive);
-                newGeneration.AddRange(survivors);
+                wr.Close();
+
+                //var rand = random.Next(newGeneration.Count);
+                //RemoveTransitionMutation(newGeneration[rand]);
+
+                if (System.IO.File.Exists("species1.txt")) System.IO.File.Delete("species1.txt");
+                wr = new System.IO.StreamWriter("species1.txt");
+                foreach (var ind in newGeneration)
+                {
+                    wr.WriteLine(ind.ToString().Replace("\n", "\r\n"));
+                }
+                wr.Close();
+
+                var ssss = newGeneration[0];
+
+                // replace population
+                var amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;
+                if (amountToSurvive > 0)
+                {
+                    var survivors = _population.Select(x => x).Skip(_population.Count - amountToSurvive);
+                    newGeneration.AddRange(survivors);
+                }
                 _population = newGeneration;
 
                 Logger.CurrentLogger.LogStat("State id reached", _stateIndex);

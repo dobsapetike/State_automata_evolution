@@ -8,7 +8,7 @@ namespace BenchmarkDepot.Classes.Core
     /// <summary>
     /// Class reprezentation of a transition between two transducer states
     /// </summary>
-    public class TransducerTransition : ICloneable
+    public class TransducerTransition
     {
 
         /// <summary>
@@ -46,10 +46,11 @@ namespace BenchmarkDepot.Classes.Core
         }
 
         /// <summary>
-        /// Sets the action executed by this transition
+        /// Gets and sets the action executed by this transition
         /// </summary>
         public Action TransitionAction
         {
+            get { return _transitionAction; }
             set
             {
                 if (value == null || _transitionAction.Equals(value)) return;
@@ -99,14 +100,14 @@ namespace BenchmarkDepot.Classes.Core
 
         #region Cloning
 
-        public object Clone()
+        public TransducerTransition Clone()
         {
-            var other = (TransducerTransition)this.MemberwiseClone();
-            if (_transitionAction != null)
-            {
-                other._transitionAction = new Action(_transitionAction);
-            }
-            return other;
+            var trans = new TransducerTransition(_transitionAction, 
+                _transitionTranslation, _innovationNumber);
+            trans.StateFrom = _stateFrom;
+            trans.StateTo = _stateTo;
+            trans.TransitionTrigger = _transitionTrigger;
+            return trans;
         }
 
         #endregion

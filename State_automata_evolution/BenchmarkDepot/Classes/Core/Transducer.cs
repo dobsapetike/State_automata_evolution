@@ -11,7 +11,7 @@ namespace BenchmarkDepot.Classes.Core
     /// <summary>
     /// Class reprezentation of a finite state, deterministic transducer
     /// </summary>
-    public class Transducer : ICloneable, IComparable
+    public class Transducer : IComparable
     {
 
         #region Private fields
@@ -71,20 +71,23 @@ namespace BenchmarkDepot.Classes.Core
 
         #region Cloning
 
-        public object Clone()
+        public Transducer Clone()
         {
-            var other = (Transducer)this.MemberwiseClone();
-            other._states = _states.Select(state => (TransducerState)state.Clone()).ToList();
+            var t = new Transducer();
+            foreach (var state in States)
+            {
+                t.AddState(state.Clone());
+            }
             if (_currentState != null)
             {
-                other._currentState = other._states.Where(state => state.ID == _currentState.ID).First();
+                t._currentState = t._states.Where(state => state.ID == _currentState.ID).First();
             }
             if (_startState != null)
             {
-                other._startState = other._states.Where(state => state.ID == _startState.ID).First();
+                t._startState = t._states.Where(state => state.ID == _startState.ID).First();
             }
-            other.EvaluationInfo = new EvaluationInfo();
-            return other;
+            t.EvaluationInfo = new EvaluationInfo { Fitness = EvaluationInfo.Fitness };
+            return t;
         }
 
         #endregion
@@ -158,7 +161,7 @@ namespace BenchmarkDepot.Classes.Core
             transition.StateFrom = a.ID;
             transition.StateTo = b.ID;
             transition.TransitionTrigger = trigger;
-            from.AddTransition(trigger.TransitionEvent, transition, b.ID);
+            a.AddTransition(trigger.TransitionEvent, transition, b.ID);
         }
 
         /// <summary>
@@ -168,6 +171,14 @@ namespace BenchmarkDepot.Classes.Core
         {
             Translation = "";
             _currentState = _startState;
+        }
+
+        /// <summary>
+        /// Gets the total number of transitions
+        /// </summary>
+        public int GetTransitionCount()
+        {
+            return _states.Sum(x => x.GetListOfTransitions().Count());
         }
 
         /// <summary>

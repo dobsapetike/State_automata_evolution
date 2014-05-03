@@ -33,7 +33,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double MatchingWeightDifferenceValue { get; set; }
         public double AddNodeMutationProbability { get; set; }
         public double AddTransitionMutationProbability { get; set; }
-        public double SurvivalRate { get; set; }
         public bool InnovationResetPerGeneration { get; set; }
 
         #endregion
@@ -45,6 +44,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int MaxIndividualSize { get; set; }
         public int GenerationThreshold { get; set; }
         public double SelectionProportion { get; set; }
+        public int TournamentSize { get; set; }
         public double ReplacementProportion { get; set; }
         public double CrossoverProbability { get; set; }
         public double StateDeletionMutationProbability { get; set; }
@@ -52,6 +52,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double TransitionActionMutationProbability { get; set; }
         public double TransitionTranslationMutationProbability { get; set; }
         public double TransitionTriggerMutationProbability { get; set; }
+        public int MutationCount { get; set; }
 
         #endregion
 
@@ -83,7 +84,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MatchingWeightDifferenceValue = np.MatchingWeightDifferenceValue;
             AddNodeMutationProbability = np.AddNodeMutationProbability;
             AddTransitionMutationProbability = np.AddTransitionMutationProbability;
-            SurvivalRate = np.SurvivalRate;
             InnovationResetPerGeneration = np.InnovationResetPerGeneration;
 
             InitialPopulationSize = gp.InitialPopulationSize;
@@ -91,6 +91,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MaxIndividualSize = gp.MaxIndividualSize;
             GenerationThreshold = gp.GenerationThreshold;
             SelectionProportion = gp.SelectionProportion;
+            TournamentSize = gp.TournamentSize;
             ReplacementProportion = gp.ReplacementProportion;
             CrossoverProbability = gp.CrossoverProbability;
             StateDeletionMutationProbability = gp.StateDeletionMutationProbability;
@@ -98,6 +99,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             TransitionActionMutationProbability = gp.TransitionActionMutationProbability;
             TransitionTranslationMutationProbability = gp.TransitionTranslationMutationProbability;
             TransitionTriggerMutationProbability = gp.TransitionTriggerMutationProbability;
+            MutationCount = gp.MutationCount;
         }
 
         #endregion

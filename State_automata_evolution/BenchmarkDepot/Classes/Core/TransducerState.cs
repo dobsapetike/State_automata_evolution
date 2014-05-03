@@ -9,7 +9,7 @@ namespace BenchmarkDepot.Classes.Core
     /// <summary>
     /// Class representation of a transition state
     /// </summary>
-    public class TransducerState : ICloneable
+    public class TransducerState
     {
 
         /// <summary>
@@ -36,16 +36,15 @@ namespace BenchmarkDepot.Classes.Core
 
         #region Cloning
 
-        public object Clone()
+        public TransducerState Clone()
         {
-            var other = (TransducerState)this.MemberwiseClone();
-            other._transitions = new Dictionary<string, Tuple<TransducerTransition, int>>();
+            var state = new TransducerState(ID);
             foreach (var transition in _transitions)
             {
-                other._transitions.Add(transition.Key, new Tuple<TransducerTransition, int>
-                    ((TransducerTransition)transition.Value.Item1.Clone(), transition.Value.Item2));
+                state._transitions.Add(transition.Key, new Tuple<TransducerTransition, int>
+                    (transition.Value.Item1.Clone(), transition.Value.Item2));
             }
-            return other;
+            return state;
         }
 
         #endregion
@@ -116,7 +115,7 @@ namespace BenchmarkDepot.Classes.Core
         public List<TransducerTransition> GetListOfTransitions()
         {
             var result = new List<TransducerTransition>();
-            result = _transitions.Select(item => (TransducerTransition)item.Value.Item1.Clone()).ToList();
+            result = _transitions.Select(item => item.Value.Item1.Clone()).ToList();
             return result;
         }
 
@@ -159,9 +158,9 @@ namespace BenchmarkDepot.Classes.Core
             string result = "";
             foreach (var transition in _transitions)
             {
-                result += String.Format("{0,-15} E:{1,-15}[{2},{3},{4}]-> ", ID, transition.Key.SetStringToLenght(15),
+                result += String.Format("{0,-15} E:{1,-15}[{2},{3},{4}] A:{5,-10}-> ", ID, transition.Key.SetStringToLenght(15),
                     transition.Value.Item1.TransitionTrigger.ConditionOperator, transition.Value.Item1.TransitionTrigger.Parameter1,
-                    transition.Value.Item1.TransitionTrigger.Parameter2);
+                    transition.Value.Item1.TransitionTrigger.Parameter2, transition.Value.Item1.ActionName.SetStringToLenght(10));
                 result += String.Format("{0,-15} // ", transition.Value.Item2);
                 result += String.Format("{0,-15}({1})\n", transition.Value.Item1.Translation.SetStringToLenght(15),
                     transition.Value.Item1.InnovationNumber);

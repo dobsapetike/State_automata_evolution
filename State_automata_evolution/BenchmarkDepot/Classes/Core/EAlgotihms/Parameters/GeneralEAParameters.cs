@@ -18,7 +18,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const int DefaultGenerationThreshold = 1500;
 
         const double DefaultSelectionProportion = 0.25;
-        const double DefaultMutationProportion = 0.25;
+        const int DefaultTournamentSize = 2;
         const double DefaultReplacementProportion = 0.85;
 
         const double DefaultCrossoverProbability = 0.5;
@@ -27,6 +27,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const double DefaultTransitionActionMutationProbability = 0.25;
         const double DefaultTransitionTranslationMutationProbability = 0.45;
         const double DefaultTransitionTriggerMutationProbability = 0.35;
+        const int DefaultMutationCount = 3;
 
         #endregion
 
@@ -38,6 +39,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private int _generationThreshold;
 
         private double _selectionProportion;
+        private int _tournamentSize;
         private double _replacementProportion;
 
         private double _crossoverProbability;
@@ -46,6 +48,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _transitionActionMutationProbability;
         private double _transitionTranslationMutationProbability;
         private double _transitionTriggerMutationProbability;
+        private int _mutationCount;
 
         #endregion
 
@@ -107,7 +110,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
 
         /// <summary>
         /// Gets and sets the selection proportion - what percent of the population
-        /// is going to become parents for producing offsprings
+        /// is going to become potential parents for producing offsprings
         /// </summary>
         public double SelectionProportion
         {
@@ -118,10 +121,24 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 RaisePropertyChanged(() => SelectionProportion);
             }
         }
+        
+        /// <summary>
+        /// Gets and sets the the number of individuals selected
+        /// during the tournament selection
+        /// </summary>
+        public int TournamentSize
+        {
+            get { return _tournamentSize; }
+            set
+            {
+                _tournamentSize = value;
+                RaisePropertyChanged(() => TournamentSize);
+            }
+        }
 
         /// <summary>
-        /// Gets and sets the replacement proportion - what top percent of population
-        /// is going to the next generation
+        /// Gets and sets the replacement proportion - what percent of population
+        /// is going to be replaced
         /// </summary>
         public double ReplacementProportion
         {
@@ -211,6 +228,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 RaisePropertyChanged(() => TransitionTriggerMutationProbability);
             }
         }
+
+        /// <summary>
+        /// Gets and sets how many times a new individual can be mutated
+        /// </summary>
+        public int MutationCount
+        {
+            get { return _mutationCount; }
+            set
+            {
+                _mutationCount = value > 0 ? value : 1;
+                RaisePropertyChanged(() => MutationCount);
+            }
+        }
         
         #endregion
 
@@ -227,6 +257,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             GenerationThreshold = DefaultGenerationThreshold;
 
             SelectionProportion = DefaultSelectionProportion;
+            TournamentSize = DefaultTournamentSize;
             ReplacementProportion = DefaultReplacementProportion;
 
             CrossoverProbability = DefaultCrossoverProbability;
@@ -235,6 +266,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             TransitionActionMutationProbability = DefaultTransitionActionMutationProbability;
             TransitionTranslationMutationProbability = DefaultTransitionTranslationMutationProbability;
             TransitionTriggerMutationProbability = DefaultTransitionTriggerMutationProbability;
+            MutationCount = DefaultMutationCount;
         }
 
         #endregion
@@ -251,6 +283,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MaxIndividualSize = preset.MaxIndividualSize;
             GenerationThreshold = preset.GenerationThreshold;
             SelectionProportion = preset.SelectionProportion;
+            TournamentSize = preset.TournamentSize;
             ReplacementProportion = preset.ReplacementProportion;
             CrossoverProbability = preset.CrossoverProbability;
             StateDeletionMutationProbability = preset.StateDeletionMutationProbability;
@@ -258,6 +291,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             TransitionActionMutationProbability = preset.TransitionActionMutationProbability;
             TransitionTranslationMutationProbability = preset.TransitionTranslationMutationProbability;
             TransitionTriggerMutationProbability = preset.TransitionTriggerMutationProbability;
+            MutationCount = preset.MutationCount;
         }
 
         #endregion
