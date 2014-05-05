@@ -27,6 +27,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public double CompatibilityThreshold { get; set; }
         public double MinCompatibilityThreshold { get; set; }
         public double CompatibilityThresholdDelta { get; set; }
+        public bool UseNormalizedRepresentant { get; set; }
         public double CoefExcessGeneFactor { get; set; }
         public double CoefDisjointGeneFactor { get; set; }
         public double CoefMatchingWeightDifferenceFactor { get; set; }
@@ -43,6 +44,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         public int MaxPopulationSize { get; set; }
         public int MaxIndividualSize { get; set; }
         public int GenerationThreshold { get; set; }
+        public bool Elitism { get; set; }
         public double SelectionProportion { get; set; }
         public int TournamentSize { get; set; }
         public double ReplacementProportion { get; set; }
@@ -82,6 +84,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             CoefDisjointGeneFactor = np.CoefDisjointGeneFactor;
             CoefMatchingWeightDifferenceFactor = np.CoefMatchingWeightDifferenceFactor;
             MatchingWeightDifferenceValue = np.MatchingWeightDifferenceValue;
+            UseNormalizedRepresentant = np.UseNormalizedRepresentant;
             AddNodeMutationProbability = np.AddNodeMutationProbability;
             AddTransitionMutationProbability = np.AddTransitionMutationProbability;
             InnovationResetPerGeneration = np.InnovationResetPerGeneration;
@@ -90,6 +93,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MaxPopulationSize = gp.MaxPopulationSize;
             MaxIndividualSize = gp.MaxIndividualSize;
             GenerationThreshold = gp.GenerationThreshold;
+            Elitism = gp.Elitism;
             SelectionProportion = gp.SelectionProportion;
             TournamentSize = gp.TournamentSize;
             ReplacementProportion = gp.ReplacementProportion;

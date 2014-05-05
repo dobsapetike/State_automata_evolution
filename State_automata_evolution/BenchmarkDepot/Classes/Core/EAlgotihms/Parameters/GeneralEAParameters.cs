@@ -29,6 +29,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const double DefaultTransitionTriggerMutationProbability = 0.35;
         const int DefaultMutationCount = 3;
 
+        const bool DefaultElitism = true;
+
         #endregion
 
         #region Private fields
@@ -49,6 +51,8 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _transitionTranslationMutationProbability;
         private double _transitionTriggerMutationProbability;
         private int _mutationCount;
+
+        private bool _elitism;
 
         #endregion
 
@@ -241,6 +245,19 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
                 RaisePropertyChanged(() => MutationCount);
             }
         }
+
+        /// <summary>
+        /// Gets and sets whether elitism is turned on
+        /// </summary>
+        public bool Elitism
+        {
+            get { return _elitism; }
+            set
+            {
+                _elitism = value;
+                RaisePropertyChanged(() => Elitism);
+            }
+        }
         
         #endregion
 
@@ -256,6 +273,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             MaxIndividualSize = DefaultMaxIndividualSize;
             GenerationThreshold = DefaultGenerationThreshold;
 
+            Elitism = DefaultElitism;
             SelectionProportion = DefaultSelectionProportion;
             TournamentSize = DefaultTournamentSize;
             ReplacementProportion = DefaultReplacementProportion;
@@ -282,6 +300,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             InitialPopulationSize = preset.InitialPopulationSize;
             MaxIndividualSize = preset.MaxIndividualSize;
             GenerationThreshold = preset.GenerationThreshold;
+            Elitism = preset.Elitism;
             SelectionProportion = preset.SelectionProportion;
             TournamentSize = preset.TournamentSize;
             ReplacementProportion = preset.ReplacementProportion;

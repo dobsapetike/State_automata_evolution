@@ -18,6 +18,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         const double DefaultCompatibilityThreshold = 0.5;
         const double DefaultMinCompatibilityThreshold = 0.1;
         const double DefaultCompatibilityThresholdDelta = 0.02;
+        const bool DefaultUseNormalizedRepresentant = false;
 
         const double DefaultCoefExcessGeneFactor = 1.0;
         const double DefaultCoefDisjointGeneFactor = 1.0;
@@ -39,6 +40,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         private double _compatibilityThreshold;
         private double _minCompatibilityThreshold;
         private double _compatibilityThresholdDelta;
+        private bool _useNormalizedRepresentant;
 
         private double _coefExcessGeneFactor;
         private double _coefDisjointGeneFactor;
@@ -208,6 +210,20 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
         }
 
         /// <summary>
+        /// Whether the algoritm should use the best individual as representant 
+        /// or a normalized version
+        /// </summary>
+        public bool UseNormalizedRepresentant
+        {
+            get { return _useNormalizedRepresentant; }
+            set 
+            {
+                _useNormalizedRepresentant = value;
+                RaisePropertyChanged(() => UseNormalizedRepresentant);
+            }
+        }
+
+        /// <summary>
         /// Gets and sets the probability of mutation when a random node(state) is added
         /// </summary>
         public double AddNodeMutationProbability
@@ -263,6 +279,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             _compatibilityThreshold = DefaultCompatibilityThreshold;
             _minCompatibilityThreshold = DefaultMinCompatibilityThreshold;
             _compatibilityThresholdDelta = DefaultCompatibilityThresholdDelta;
+            _useNormalizedRepresentant = DefaultUseNormalizedRepresentant;
 
             _coefExcessGeneFactor = DefaultCoefExcessGeneFactor;
             _coefDisjointGeneFactor = DefaultCoefDisjointGeneFactor;
@@ -294,6 +311,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Parameters
             CoefDisjointGeneFactor = preset.CoefExcessGeneFactor;
             CoefMatchingWeightDifferenceFactor = preset.CoefMatchingWeightDifferenceFactor;
             MatchingWeightDifferenceValue = preset.MatchingWeightDifferenceValue;
+            UseNormalizedRepresentant = preset.UseNormalizedRepresentant;
             AddNodeMutationProbability = preset.AddNodeMutationProbability;
             AddTransitionMutationProbability = preset.AddTransitionMutationProbability;
             InnovationResetPerGeneration = preset.InnovationResetPerGeneration;

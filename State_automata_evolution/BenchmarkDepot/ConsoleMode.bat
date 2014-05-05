@@ -1,0 +1,1 @@
+start BenchmarkDepot.exe console ConsoleConfig.xml

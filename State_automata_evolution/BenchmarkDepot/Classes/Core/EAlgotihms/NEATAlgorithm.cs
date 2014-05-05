@@ -554,10 +554,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     removed = s.RemoveTransition(selected.ID);
                 }
             }
-
-            // we don't want a transducer without transitions so if the mutation was so 
-            // radical, just undo it
-            //if (t.GetTransitionCount() == 0) t = transBuff; 
         }
         
         /// <summary>
@@ -905,7 +901,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 // for each species perform selection and mutation resp. crossover
                 foreach (var species in _species)
                 {
-                    bool isBestIn = false;
+                    bool isBestIn = !_generalParameters.Elitism; // if elitism is on, best is not there yet
                     int amountToSpawn = species.SpawnCount;
                     while (amountToSpawn-- > 0)
                     {
@@ -953,12 +949,15 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                             babyTransducer.EvaluationInfo.Fitness = fitness;
                             EvaluationCount++;
                             // let's see how good was the mutation
-                            //var mutation = babyTransducer.EvaluationInfo.LastMutation;
-                            //if (!_mutationSuccess.ContainsKey(mutation))
-                            //{
-                            //    _mutationSuccess.Add(mutation, new List<double>());
-                            //}
-                            //if (fitness - fitnessBefore > 0) _mutationSuccess[mutation].Add(fitness - fitnessBefore);
+                            var mutation = babyTransducer.EvaluationInfo.LastMutation;
+                            if (mutation != null)
+                            {
+                                if (!_mutationSuccess.ContainsKey(mutation))
+                                {
+                                    _mutationSuccess.Add(mutation, new List<double>());
+                                }
+                                if (fitness - fitnessBefore > 0) _mutationSuccess[mutation].Add(fitness - fitnessBefore);
+                            }
                         }
 
                         newGeneration.Add(babyTransducer);
@@ -975,27 +974,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     species.SelectNewRepresentative();
                     species.Clear();
                 }
-
-                if (System.IO.File.Exists("species.txt")) System.IO.File.Delete("species.txt");
-                var wr = new System.IO.StreamWriter("species.txt");
-                foreach (var ind in newGeneration)
-                {
-                    wr.WriteLine(ind.ToString().Replace("\n", "\r\n"));
-                }
-                wr.Close();
-
-                //var rand = random.Next(newGeneration.Count);
-                //RemoveTransitionMutation(newGeneration[rand]);
-
-                if (System.IO.File.Exists("species1.txt")) System.IO.File.Delete("species1.txt");
-                wr = new System.IO.StreamWriter("species1.txt");
-                foreach (var ind in newGeneration)
-                {
-                    wr.WriteLine(ind.ToString().Replace("\n", "\r\n"));
-                }
-                wr.Close();
-
-                var ssss = newGeneration[0];
 
                 // replace population
                 var amountToSurvive = _generalParameters.MaxPopulationSize - newGeneration.Count;

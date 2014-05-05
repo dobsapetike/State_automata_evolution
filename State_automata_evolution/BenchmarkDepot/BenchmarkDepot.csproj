@@ -96,6 +96,7 @@
     <Compile Include="Classes\Core\Experiments\IExperiment.cs" />
     <Compile Include="Classes\Core\Experiments\NoZeroLeftBehind.cs" />
     <Compile Include="Classes\Core\Experiments\Termostat.cs" />
+    <Compile Include="Classes\Core\QuickStartSetup.cs" />
     <Compile Include="Classes\Core\TransitionTrigger.cs" />
     <Compile Include="Classes\GUI\EvolutionWindow.xaml.cs">
       <DependentUpon>EvolutionWindow.xaml</DependentUpon>
@@ -132,6 +133,9 @@
     </Compile>
     <None Include="app.config" />
     <AppDesigner Include="Properties\" />
+    <None Include="ConsoleMode.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\logo.ico" />

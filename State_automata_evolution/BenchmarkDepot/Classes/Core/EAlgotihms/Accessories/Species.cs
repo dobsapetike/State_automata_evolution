@@ -232,17 +232,16 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
         /// </summary>
         public void SelectNewRepresentative()
         {
-            var best = _population.MaxBy(x => x.EvaluationInfo.Fitness);
-            if (best != _representative)
+            if (!_neatParams.UseNormalizedRepresentant)
             {
-                _representative = best;
+                var best = _population.MaxBy(x => x.EvaluationInfo.Fitness);
+               _representative = best;
             }
 
-            // 
             // collection for storing the number of instances of a specific structure
             // first key is the innovation number, second is the string consisting of
             // the transition event and action name, the value is the counter
-            /*var transitionCount = new Dictionary<int, Dictionary<string, int>>();
+            var transitionCount = new Dictionary<int, Dictionary<string, int>>();
             var innovationId = new Dictionary<int, Tuple<int, int>>();
             var actionBuffer = new Dictionary<string, Action>();
             foreach (var individual in _population)
@@ -252,21 +251,27 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                     var transitions = state.GetListOfTransitions();
                     foreach (var transition in transitions)
                     {
-                        if (!transitionCount.ContainsKey(transition.StateFrom))
+                        if (!transitionCount.ContainsKey(transition.InnovationNumber))
                         {
-                            transitionCount[transition.StateFrom] = new Dictionary<string,int>();
+                            transitionCount[transition.InnovationNumber] = new Dictionary<string,int>();
                             innovationId[transition.InnovationNumber] = new Tuple<int, int>
                                (transition.StateFrom, transition.StateTo);
                         }
-                        ++transitionCount[transition.InnovationNumber]
-                            [transition.TransitionTrigger.TransitionEvent + " " + transition.ActionName + " " + transition.Translation];
-                        if (!actionBuffer.ContainsKey(transition.ActionName)) 
+                        
+                        var stringKey = transition.TransitionTrigger.TransitionEvent.Replace(" ", "_") + " " 
+                            + transition.ActionName.Replace(" ", "_") + " " + transition.Translation;
+                        if (!transitionCount[transition.InnovationNumber].ContainsKey(stringKey))
+                            transitionCount[transition.InnovationNumber][stringKey] = 0;
+                        transitionCount[transition.InnovationNumber][stringKey]++;
+
+                        var actionName = transition.ActionName.Replace(" ", "_");
+                        if (!actionBuffer.ContainsKey(actionName)) 
                         {
-                            actionBuffer[transition.ActionName] = null;
+                            actionBuffer[actionName] = null;
                         }
                         if (transition.TransitionAction != null)
                         {
-                            actionBuffer[transition.ActionName] = new Action(transition.TransitionAction);
+                            actionBuffer[actionName] = new Action(transition.TransitionAction);
                         }
                     }
                 }
@@ -285,7 +290,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms.Accessories
                 representative.AddTransition(new TransducerState(stateId.Item1), new TransducerState(stateId.Item2),
                     new TransitionTrigger(eventName), new TransducerTransition(
                         actionBuffer[actionName], translation, t.Key));
-            } */
+            } 
         }
 
         /// <summary>

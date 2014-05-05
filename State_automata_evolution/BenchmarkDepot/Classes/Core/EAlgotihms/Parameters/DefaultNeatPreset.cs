@@ -19,6 +19,7 @@
             CoefDisjointGeneFactor = 1d;
             CoefMatchingWeightDifferenceFactor = 1d;
             MatchingWeightDifferenceValue = 1d;
+            UseNormalizedRepresentant = false;
             AddNodeMutationProbability = 0.9;
             AddTransitionMutationProbability = 0.9;
             InnovationResetPerGeneration = false;
@@ -27,6 +28,7 @@
             MaxPopulationSize = 1500;
             MaxIndividualSize = 10;
             GenerationThreshold = 2000;
+            Elitism = true;
             SelectionProportion = 0.5d;
             TournamentSize = 2;
             ReplacementProportion = 1d;
