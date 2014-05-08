@@ -108,6 +108,7 @@
     <Compile Include="Classes\GUI\ViewModel\ParametersWindowViewModel.cs" />
     <Compile Include="Classes\Misc\BoolToVisibilityConverter.cs" />
     <Compile Include="Classes\Misc\ConsoleManager.cs" />
+    <Compile Include="Classes\Misc\CSVCreator.cs" />
     <Compile Include="Classes\Misc\DelegateCommand.cs" />
     <Compile Include="Classes\Misc\ObservableObject.cs" />
     <Compile Include="Classes\GUI\ViewModel\BenchmarkDepotViewModel.cs" />

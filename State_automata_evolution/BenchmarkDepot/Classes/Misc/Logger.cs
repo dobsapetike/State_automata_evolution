@@ -11,9 +11,9 @@ namespace BenchmarkDepot.Classes.Misc
     public class Logger
     {
 
-        #region File locations
+        #region File location
 
-        public const string GeneralLogFile = "log.txt";
+        public const string GraphDataOutputPath = "output/";
         public const string EvolutionLogFile = "evolution.log.txt";
 
         #endregion
@@ -21,9 +21,9 @@ namespace BenchmarkDepot.Classes.Misc
         #region Privat fields
 
         /// <summary>
-        /// Logs general events
+        /// Logs data for graph creation
         /// </summary>
-        private StreamWriter _generalLogWriter;
+        private StreamWriter _graphDataWriter;
 
         /// <summary>
         /// Logs evolution data
@@ -40,20 +40,12 @@ namespace BenchmarkDepot.Classes.Misc
         /// </summary>
         private Logger()
         {
-            if (File.Exists(GeneralLogFile))
-            {
-                File.Copy(GeneralLogFile, GeneralLogFile + ".bak", true);
-            }
             if (File.Exists(EvolutionLogFile))
             {
                 File.Copy(EvolutionLogFile, EvolutionLogFile + ".bak", true);
             }
+            if (!Directory.Exists(GraphDataOutputPath)) Directory.CreateDirectory(GraphDataOutputPath);
 
-           _generalLogWriter = new StreamWriter(GeneralLogFile) 
-           { 
-               AutoFlush = true,
-               NewLine = "\r\n"
-           };
            _evolutionLogWriter = new StreamWriter(EvolutionLogFile) 
            { 
                AutoFlush = true,
@@ -77,33 +69,31 @@ namespace BenchmarkDepot.Classes.Misc
 
         #endregion
 
-        #region General logger
+        #region Graphics data logger
 
         /// <summary>
-        /// Logs a message into the general log file
+        /// Counter for the output file name
         /// </summary>
-        public void LogInfo(string info)
+        private int _graphFileCounter = 0;
+
+        /// <summary>
+        /// Called at the start of a new generation, created new file output
+        /// </summary>
+        private void SwitchGraphFile()
         {
-            Console.Out.WriteLine("INFO {0}", info);
-            _generalLogWriter.WriteLine("{0} - {1,-10}: {2}", DateTime.Now, "INFO", info);
+            _graphDataWriter = new StreamWriter(GraphDataOutputPath + ++_graphFileCounter + ".txt")
+            {
+                AutoFlush = true,
+                NewLine = "\r\n"
+            };
         }
 
         /// <summary>
-        /// Logs a warning into the general log file
+        /// Logs the graph data
         /// </summary>
-        public void LogWarning(string warning)
+        public void LogGraphData(string data)
         {
-            Console.Out.WriteLine("WARNING {0}", warning);
-            _generalLogWriter.WriteLine("{0} - {1,-10}: {2}", DateTime.Now, "WARNING", warning);
-        }
-
-        /// <summary>
-        /// Logs an error into the general log file
-        /// </summary>
-        public void LogError(string error)
-        {
-            Console.Out.WriteLine("ERROR {0}", error);
-            _generalLogWriter.WriteLine("{0} - {1,-10}: {2}", DateTime.Now, "ERROR", error);
+            _graphDataWriter.WriteLine(data);
         }
 
         #endregion
@@ -117,6 +107,7 @@ namespace BenchmarkDepot.Classes.Misc
         /// <param name="experimentTitle">name of the experiment</param>
         public void LogEvolutionStart(string algorithmTitle, string experimentTitle)
         {
+            SwitchGraphFile();
             Console.Out.WriteLine("Evolution start ({0}, {1})", algorithmTitle, experimentTitle);
             _evolutionLogWriter.WriteLine(new String('*', 80));
             _evolutionLogWriter.WriteLine("*" + new String(' ', 78) + "*");
@@ -138,6 +129,9 @@ namespace BenchmarkDepot.Classes.Misc
             _evolutionLogWriter.WriteLine("{0,-25}:{1}", "Generation", generation);
             _evolutionLogWriter.WriteLine("{0,-25}:{1}", "Sufficient solution", found);
             _evolutionLogWriter.WriteLine("Result:\r\n{0}\r\n\r\n", result.Replace("\n","\r\n"));
+
+            _graphDataWriter.Close();
+            _graphDataWriter.Dispose();
         }
 
         /// <summary>

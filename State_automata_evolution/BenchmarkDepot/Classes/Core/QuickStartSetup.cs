@@ -27,7 +27,6 @@ namespace BenchmarkDepot.Classes.Core
         {
             if (!File.Exists(filePath))
             {
-                //Logger.CurrentLogger.LogError("Could not initialize quick start setup due to missing xml file!");
                 throw new ArgumentException(filePath);
             }
 
@@ -115,12 +114,15 @@ namespace BenchmarkDepot.Classes.Core
 
             for (var i = 0; i < _runNumber; ++i)
             {
-                while (_stillRunning) Thread.Sleep(10000);
+                while (_stillRunning) Thread.Sleep(1000);
 
                 _stillRunning = true;
                 _algorithm.Evolve(_ => { _stillRunning = false; });
             }
             while (_stillRunning) { } // don't exit until it's not done
+
+            // now create cvs from the results
+            CSVCreator.CreateCSV(Logger.GraphDataOutputPath);
         }
 
         #endregion

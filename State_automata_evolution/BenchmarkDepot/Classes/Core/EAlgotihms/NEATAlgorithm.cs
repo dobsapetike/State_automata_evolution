@@ -441,7 +441,6 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                     var elem = intersection.ElementAt(0);
                     return new Tuple<int, int, int>(firstCandidates[elem], secondCandidates[elem], elem);
                 default:
-                    Logger.CurrentLogger.LogError("Innovation control error! The same modification occurred more than once.");
                     throw new ApplicationException("The same modification already occurred more than once. This should never happen!");
             }
         }
@@ -840,6 +839,7 @@ namespace BenchmarkDepot.Classes.Core.EAlgotihms
                 Logger.CurrentLogger.LogStat("Population count", _population.Count);
                 Logger.CurrentLogger.LogStat("Specie count", _species.Count);
 
+                Logger.CurrentLogger.LogGraphData(bestOne.EvaluationInfo.Fitness.ToString());
                 Logger.CurrentLogger.LogStat("Best fitness", bestOne.EvaluationInfo.Fitness);
                 if (bestOne.EvaluationInfo.Fitness >= Experiment.RequiredFitness)
                 {
